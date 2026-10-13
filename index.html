@@ -45,6 +45,7 @@
       border-radius: 6px;
       border: 1px solid var(--border);
     }
+    select { min-width: 130px; background: white; }
     input[type="number"] { width: 80px; }
     button {
       cursor: pointer;
@@ -110,7 +111,7 @@
     }
     tbody tr:hover { background: #f8fafc; }
     .name-input {
-      width: 130px;
+      width: 140px;
       border: 1px solid transparent;
       padding: 4px;
       border-radius: 4px;
@@ -122,7 +123,7 @@
       outline: none;
     }
     .mark-input {
-      width: 44px;
+      width: 46px;
       text-align: center;
       padding: 4px;
       border: 1px solid #e2e8f0;
@@ -179,9 +180,13 @@
           <input type="number" id="numStudentsInput" min="1" max="150" />
           <button class="btn-outline" onclick="updateStudentCount()">Apply</button>
         </div>
-        <div style="margin-left: auto;">
-          <label>Bulk Student Names (CSV Upload):</label><br/>
+        <div>
+          <label>Bulk Student Names (CSV):</label><br/>
           <input type="file" id="csvFileInput" accept=".csv,.txt" onchange="uploadStudentCSV(event)" style="font-size:0.8rem;" />
+        </div>
+        <div style="margin-left: auto;">
+          <label>Reset Everything:</label><br/>
+          <button class="btn-outline" style="color:var(--danger); border-color:#fca5a5;" onclick="resetAllData()">🔄 Reset to Factory Defaults</button>
         </div>
       </div>
     </div>
@@ -229,31 +234,17 @@
 </div>
 
 <script>
+  const DEFAULT_BATCHES = ["Batch 1", "Batch 2", "Batch 3", "Batch 4", "Batch 5", "Batch 6"];
+  const DEFAULT_TUTORIALS = 10;
+  const DEFAULT_STUDENTS = 30;
+
   let config = {
-    batches: ["Batch 1", "Batch 2", "Batch 3", "Batch 4", "Batch 5", "Batch 6"],
-    numTutorials: 10,
-    currentBatch: "Batch 1"
+    batches: [...DEFAULT_BATCHES],
+    numTutorials: DEFAULT_TUTORIALS,
+    currentBatch: DEFAULT_BATCHES[0]
   };
 
   let studentStore = {};
-
-  function loadData() {
-    const savedConfig = localStorage.getItem('voice_marks_config');
-    const savedStore = localStorage.getItem('voice_marks_store');
-    if (savedConfig) config = JSON.parse(savedConfig);
-    if (savedStore) studentStore = JSON.parse(savedStore);
-
-    config.batches.forEach(b => {
-      if (!studentStore[b]) {
-        studentStore[b] = createDefaultStudents(30, config.numTutorials);
-      }
-    });
-  }
-
-  function saveData() {
-    localStorage.setItem('voice_marks_config', JSON.stringify(config));
-    localStorage.setItem('voice_marks_store', JSON.stringify(studentStore));
-  }
 
   function createDefaultStudents(count, tutCount) {
     const list = [];
@@ -267,6 +258,69 @@
     return list;
   }
 
+  // Robust loader that safely repairs old/corrupted localStorage
+  function loadData() {
+    try {
+      const savedConfig = localStorage.getItem('voice_marks_config');
+      const savedStore = localStorage.getItem('voice_marks_store');
+
+      if (savedConfig) {
+        const parsed = JSON.parse(savedConfig);
+        if (parsed && Array.isArray(parsed.batches) && parsed.batches.length > 0) {
+          config.batches = parsed.batches;
+          config.numTutorials = parseInt(parsed.numTutorials) || DEFAULT_TUTORIALS;
+          config.currentBatch = parsed.currentBatch || parsed.batches[0];
+        }
+      }
+
+      if (savedStore) {
+        const parsedStore = JSON.parse(savedStore);
+        if (parsedStore && typeof parsedStore === 'object') {
+          studentStore = parsedStore;
+        }
+      }
+    } catch (e) {
+      console.warn("Storage error detected, resetting state to defaults", e);
+      studentStore = {};
+    }
+
+    // Sanity checks
+    if (!Array.isArray(config.batches) || config.batches.length === 0) {
+      config.batches = [...DEFAULT_BATCHES];
+    }
+    if (!config.currentBatch || !config.batches.includes(config.currentBatch)) {
+      config.currentBatch = config.batches[0];
+    }
+    if (!config.numTutorials || isNaN(config.numTutorials)) {
+      config.numTutorials = DEFAULT_TUTORIALS;
+    }
+
+    config.batches.forEach(b => {
+      if (!studentStore[b] || !Array.isArray(studentStore[b]) || studentStore[b].length === 0) {
+        studentStore[b] = createDefaultStudents(DEFAULT_STUDENTS, config.numTutorials);
+      }
+    });
+
+    saveData();
+  }
+
+  function saveData() {
+    try {
+      localStorage.setItem('voice_marks_config', JSON.stringify(config));
+      localStorage.setItem('voice_marks_store', JSON.stringify(studentStore));
+    } catch (e) {
+      console.error("Failed to save to localStorage", e);
+    }
+  }
+
+  function resetAllData() {
+    if (!confirm("This will clear all saved names and marks and restore factory defaults. Are you sure?")) return;
+    localStorage.removeItem('voice_marks_config');
+    localStorage.removeItem('voice_marks_store');
+    localStorage.removeItem('tutorial_marks_data');
+    location.reload();
+  }
+
   function toggleSettings() {
     const panel = document.getElementById('settingsPanel');
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -274,10 +328,10 @@
   }
 
   function syncSettingsInputs() {
-    document.getElementById('renameBatchInput').value = config.currentBatch;
-    document.getElementById('numTutorialsInput').value = config.numTutorials;
+    document.getElementById('renameBatchInput').value = config.currentBatch || '';
+    document.getElementById('numTutorialsInput').value = config.numTutorials || DEFAULT_TUTORIALS;
     const students = studentStore[config.currentBatch] || [];
-    document.getElementById('numStudentsInput').value = students.length;
+    document.getElementById('numStudentsInput').value = students.length || DEFAULT_STUDENTS;
   }
 
   function renameCurrentBatch() {
@@ -305,7 +359,7 @@
     if (config.batches.includes(name)) return alert("Batch already exists.");
 
     config.batches.push(name);
-    studentStore[name] = createDefaultStudents(30, config.numTutorials);
+    studentStore[name] = createDefaultStudents(DEFAULT_STUDENTS, config.numTutorials);
     config.currentBatch = name;
     document.getElementById('newBatchInput').value = '';
     saveData();
@@ -337,6 +391,7 @@
 
     config.batches.forEach(b => {
       (studentStore[b] || []).forEach(student => {
+        if (!student.marks) student.marks = [];
         if (student.marks.length < val) {
           while (student.marks.length < val) student.marks.push("");
         } else if (student.marks.length > val) {
@@ -348,7 +403,7 @@
     saveData();
     populateTutorialDropdown();
     renderTable();
-    alert(`Tutorial count updated to ${val}`);
+    alert(`Tutorial count set to ${val}`);
   }
 
   function updateStudentCount() {
@@ -360,4 +415,108 @@
       for (let i = list.length + 1; i <= val; i++) {
         list.push({ roll: i, name: `Roll ${i}`, marks: Array(config.numTutorials).fill("") });
       }
-    } else if
+    } else if (val < list.length) {
+      if (confirm(`Reducing to ${val} students will delete data for the extra students. Continue?`)) {
+        list = list.slice(0, val);
+      } else {
+        return;
+      }
+    }
+    studentStore[config.currentBatch] = list;
+    saveData();
+    renderTable();
+  }
+
+  function uploadStudentCSV(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const lines = evt.target.result.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+      if (lines.length === 0) return alert("CSV file is empty.");
+
+      let list = studentStore[config.currentBatch] || [];
+      lines.forEach((line, idx) => {
+        const parts = line.split(',');
+        const name = parts.length > 1 ? parts[1].trim() : parts[0].trim();
+        if (idx < list.length) {
+          list[idx].name = name;
+        } else {
+          list.push({
+            roll: idx + 1,
+            name: name,
+            marks: Array(config.numTutorials).fill("")
+          });
+        }
+      });
+      studentStore[config.currentBatch] = list;
+      saveData();
+      renderTable();
+      syncSettingsInputs();
+      alert(`Imported ${lines.length} student names into ${config.currentBatch}.`);
+    };
+    reader.readAsText(file);
+  }
+
+  function populateBatchDropdown() {
+    const sel = document.getElementById('batchDropdown');
+    sel.innerHTML = '';
+    config.batches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b;
+      opt.textContent = b;
+      if (b === config.currentBatch) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function populateTutorialDropdown() {
+    const sel = document.getElementById('tutorialDropdown');
+    const prev = sel.value;
+    sel.innerHTML = '';
+    for (let i = 1; i <= config.numTutorials; i++) {
+      const opt = document.createElement('option');
+      opt.value = i - 1;
+      opt.textContent = `Tutorial ${i}`;
+      sel.appendChild(opt);
+    }
+    if (prev && prev < config.numTutorials) sel.value = prev;
+  }
+
+  function onBatchChange() {
+    config.currentBatch = document.getElementById('batchDropdown').value;
+    saveData();
+    syncSettingsInputs();
+    renderTable();
+  }
+
+  function renderTable() {
+    const head = document.getElementById('tableHead');
+    const body = document.getElementById('tableBody');
+    const students = studentStore[config.currentBatch] || [];
+
+    let headHtml = `<tr>
+      <th style="width:50px;">Roll</th>
+      <th style="width:140px; text-align:left; padding-left:8px;">Student Name</th>`;
+    for (let t = 1; t <= config.numTutorials; t++) {
+      headHtml += `<th>T${t}</th>`;
+    }
+    headHtml += `<th>Avg (/10)</th><th class="score-cell">Final (/25)</th></tr>`;
+    head.innerHTML = headHtml;
+
+    body.innerHTML = '';
+    students.forEach((s, rIndex) => {
+      const row = document.createElement('tr');
+      row.id = `student-row-${s.roll}`;
+
+      let cells = `<td><strong>${s.roll}</strong></td>`;
+      cells += `<td><input class="name-input" type="text" value="${s.name}" onchange="updateName(${rIndex}, this.value)" /></td>`;
+
+      let sum = 0, validCount = 0;
+      for (let t = 0; t < config.numTutorials; t++) {
+        const val = s.marks && s.marks[t] !== undefined ? s.marks[t] : "";
+        const isAb = (val === 'AB' || val === 'ab');
+        const num = parseFloat(val);
+
+        if (!isAb && !isNaN(num)) {
+          sum += num;
