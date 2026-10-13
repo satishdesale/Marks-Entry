@@ -1,681 +1,474 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Voice Marks Entry - Mathematics Tutorial</title>
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --accent-green: #16a34a;
-      --danger: #dc2626;
-      --border: #cbd5e1;
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 16px;
-    }
-    .container { max-width: 1200px; margin: 0 auto; }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    h1 { margin: 0 0 6px 0; font-size: 1.4rem; }
-    h2 { margin: 0 0 10px 0; font-size: 1.1rem; color: #1e3a8a; }
-    p.sub { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
-    
-    .flex-wrap { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    label { font-size: 0.88rem; font-weight: 600; color: #334155; }
-    select, input[type="text"], input[type="number"], button {
-      padding: 8px 12px;
-      font-size: 0.9rem;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-    }
-    select { min-width: 140px; background: white; }
-    input[type="number"] { width: 80px; }
-    button {
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-    .btn-primary { background: var(--primary); color: white; border: none; }
-    .btn-primary:hover { background: var(--primary-hover); }
-    .btn-success { background: var(--accent-green); color: white; border: none; }
-    .btn-danger { background: var(--danger); color: white; border: none; }
-    .btn-outline { background: white; border: 1px solid var(--border); }
-    .btn-outline:hover { background: #f1f5f9; }
-
-    .mic-btn.active {
-      background: var(--danger);
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
-      70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
-    }
-
-    .settings-panel {
-      background: #f1f5f9;
-      border: 1px dashed #94a3b8;
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin-top: 12px;
-    }
-    .status-bar {
-      background: #eff6ff;
-      border-left: 4px solid var(--primary);
-      padding: 10px 14px;
-      border-radius: 6px;
-      font-size: 0.92rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .table-responsive {
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: white;
-      max-height: 70vh;
-    }
-    table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.88rem; }
-    thead th {
-      background: #e2e8f0;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      padding: 10px 6px;
-      font-weight: 600;
-      border-bottom: 2px solid var(--border);
-    }
-    tbody td {
-      padding: 6px 4px;
-      border-bottom: 1px solid #f1f5f9;
-    }
-    tbody tr:hover { background: #f8fafc; }
-    .name-input {
-      width: 140px;
-      border: 1px solid transparent;
-      padding: 4px;
-      border-radius: 4px;
-      text-align: left;
-    }
-    .name-input:focus {
-      border-color: var(--primary);
-      background: white;
-      outline: none;
-    }
-    .mark-input {
-      width: 48px;
-      text-align: center;
-      padding: 4px;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-    }
-    .mark-input:focus { border-color: var(--primary); outline: none; }
-    .is-absent { background-color: #fee2e2; color: #991b1b; font-weight: bold; }
-    .highlight-voice { background-color: #bbf7d0 !important; }
-    .score-cell { font-weight: 700; color: #1e3a8a; background: #f8fafc; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial Marks · Voice Entry</title>
+<style>
+:root{--bg:#f2f4f1;--card:#fff;--ink:#1b2430;--mute:#66707c;--line:#dde2dc;--acc:#2540d9;--acc-d:#1a2fa6;--hot:#e5383b;--mark:#ffe45e;--ok:#1f7a4d;--bad:#b3261e}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:0 0 3rem}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+header{background:var(--ink);color:#fff;padding:1rem clamp(.8rem,3vw,2rem)}
+.top{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between;max-width:1400px;margin:auto}
+h1{font-size:1.25rem;margin:0;font-weight:650;letter-spacing:.01em}
+h1 small{display:block;font-weight:400;opacity:.7;font-size:.8rem}
+.tools{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.btn{background:#fff;border:1px solid var(--line);border-radius:8px;padding:.45rem .8rem;font-weight:550}
+.btn:hover{background:#eef1ff}
+.btn.dark{background:transparent;color:#fff;border-color:#ffffff55}.btn.dark:hover{background:#ffffff1f}
+.btn.pri{background:var(--acc);color:#fff;border-color:var(--acc)}.btn.pri:hover{background:var(--acc-d)}
+main{max-width:1400px;margin:auto;padding:1rem clamp(.8rem,3vw,2rem)}
+.voice{display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem 1.2rem}
+#mic{width:84px;height:84px;border-radius:50%;border:0;background:var(--acc);color:#fff;display:grid;place-items:center;flex:none;position:relative}
+#mic svg{width:36px;height:36px;fill:currentColor}
+#mic.on{background:var(--hot);animation:pulse 1.3s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #e5383b88}70%{box-shadow:0 0 0 22px #e5383b00}100%{box-shadow:0 0 0 0 #e5383b00}}
+.vtxt{flex:1;min-width:240px}
+#micLabel{font-weight:650;font-size:1.05rem}
+#heard{font-size:1.35rem;min-height:2rem;margin:.2rem 0;word-break:break-word}
+#heard.interim{color:var(--mute);font-style:italic}
+#status{display:inline-block;border-radius:6px;padding:.15rem .6rem;font-size:.9rem;background:#eef0ed;color:var(--mute)}
+#status.ok{background:#dff3e8;color:var(--ok)}#status.err{background:#fde6e4;color:var(--bad)}
+.tips{font-size:.85rem;color:var(--mute);flex-basis:100%;margin:0}
+.tips b{color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;margin:1rem 0 .6rem}
+.tabs{display:flex;gap:.3rem;overflow-x:auto;flex:1;padding-bottom:2px}
+.tab{white-space:nowrap;border:1px solid var(--line);background:var(--card);padding:.45rem .9rem;border-radius:8px}
+.tab.act{background:var(--ink);color:#fff;border-color:var(--ink)}
+label.sel{display:flex;gap:.4rem;align-items:center;font-weight:550}
+select,input[type=number],textarea{border:1px solid var(--line);border-radius:8px;padding:.4rem .5rem;background:#fff}
+.wrap{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:68vh}
+table{border-collapse:separate;border-spacing:0;width:100%}
+th,td{padding:.25rem .4rem;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+th{position:sticky;top:0;background:#f7f8f6;z-index:2;font-weight:600;font-size:.85rem}
+th.cw{background:var(--mark)}td.cw{background:#fffbe0}
+.s1{position:sticky;left:0;background:inherit;z-index:1;min-width:46px}
+td.s1{background:#fafbf9;font-weight:650}th.s1{z-index:3}
+.s2{position:sticky;left:46px;background:#fff;z-index:1;text-align:left;min-width:150px}
+th.s2{z-index:3;background:#f7f8f6}
+td input{border:1px solid transparent;background:transparent;border-radius:6px;padding:.3rem;text-align:center;width:3.4rem}
+td input.nm{text-align:left;width:100%;min-width:140px}
+td input:hover{border-color:var(--line)}td input:focus{background:#fff;border-color:var(--acc)}
+.avg,.fin{font-variant-numeric:tabular-nums;font-weight:650}.fin{color:var(--acc)}
+tr.flash td{animation:fl 2.4s ease-out}
+@keyframes fl{0%,35%{background:var(--mark)}100%{}}
+.log{font-size:.85rem;color:var(--mute);margin-top:.8rem}
+.log span{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:6px;padding:.1rem .5rem;margin:.15rem .25rem .15rem 0}
+dialog{border:0;border-radius:14px;padding:1.2rem;width:min(560px,94vw);box-shadow:0 20px 60px #0004}
+dialog::backdrop{background:#0006}
+dialog h2{margin:0 0 .6rem;font-size:1.1rem}
+dialog .f{display:grid;gap:.25rem;margin:.6rem 0}
+dialog textarea{width:100%;min-height:150px;font-family:ui-monospace,Menlo,monospace;font-size:.85rem}
+dialog .g{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+dialog .g input{width:100%}
+.hint{font-size:.8rem;color:var(--mute)}
+.act{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}
+@media(max-width:600px){#heard{font-size:1.1rem}.s2{min-width:110px;left:40px}.s1{min-width:40px}}
+@media(prefers-reduced-motion:reduce){#mic.on,tr.flash td{animation:none}tr.flash td{background:var(--mark)}}
+:root{--bg:#f4f7f6;--card:#fff;--ink:#17302e;--mute:#5f7573;--line:#dbe5e3;--acc:#0f766e;--acc-d:#0b5a54;--hot:#e5484d;--mark:#ffd166;--head:#eef5f3;--cw:#fff8dc;--hi:#d9f5e5;--mid:#fff0c9;--lo:#fde0dd;--hero:linear-gradient(120deg,#0b3d3a,#0f766e 65%,#2a9d8f)}
+html[data-theme=dark]{--bg:#0e1716;--card:#16221f;--ink:#e6f2ef;--mute:#9bb3af;--line:#27403b;--head:#1b2d2a;--cw:#2b2a14;--hi:#17402c;--mid:#443a14;--lo:#4a2224;--acc:#2dd4bf;--acc-d:#5eead4;--ok:#6ee7a8;--bad:#ff8a80}
+html[data-theme=dark] .btn.pri,html[data-theme=dark] .tab.act,html[data-theme=dark] #mic{color:#04201d}
+body{background:var(--bg);color:var(--ink)}
+header{background:var(--hero)}
+h1{font-size:1.4rem}
+.btn{background:var(--card);color:var(--ink);border-color:var(--line);border-radius:999px;padding:.5rem 1rem}
+.btn:hover{background:var(--head)}
+.btn.dark{background:#ffffff1f;color:#fff;border-color:#ffffff40}.btn.dark:hover{background:#ffffff38}
+.btn.pri{background:var(--acc);color:#fff;border-color:var(--acc)}.btn.pri:hover{background:var(--acc-d)}
+.voice,.wrap,.card{background:var(--card);border:1px solid var(--line);border-radius:20px}
+.voice{box-shadow:0 6px 24px #0f766e14}
+#mic{background:var(--acc);width:96px;height:96px;box-shadow:0 8px 24px #0f766e55}#mic.on{background:var(--hot)}
+#heard{font-size:1.5rem}
+#status{background:var(--head)}#status.ok{background:var(--hi);color:var(--ok)}#status.err{background:var(--lo);color:var(--bad)}
+select,input[type=number],input[type=search],textarea{background:var(--card);color:var(--ink);border-color:var(--line);border-radius:999px;padding:.45rem .8rem}
+textarea{border-radius:12px}
+dialog{background:var(--card);color:var(--ink);border-radius:20px}
+.tab{background:var(--card);color:var(--ink);border-radius:999px}.tab.act{background:var(--acc);color:#fff;border-color:var(--acc)}
+th,th.s1,th.s2{background:var(--head)}th.cw{background:var(--mark);color:#1b2430}
+td.cw{background:var(--cw)}td.s1{background:var(--head)}td.s2{background:var(--card)}
+td input{color:var(--ink);border-radius:8px}td input:focus{background:var(--card)}
+td input.hi{background:var(--hi)}td input.mid{background:var(--mid)}td input.lo{background:var(--lo)}
+.log span{background:var(--card);border-radius:999px}
+#stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.8rem;margin:1rem 0}
+.card{padding:.8rem 1rem}.card small{color:var(--mute);display:block}.card b{font-size:1.5rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card.go{cursor:pointer;border-color:var(--acc)}.card.go:hover{background:var(--head)}
+.bar{height:8px;background:var(--head);border-radius:9px;overflow:hidden;margin-top:.4rem}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),#7bd8c9);transition:width .4s}
+#q{min-width:150px}
+</style>
 </head>
 <body>
-<div class="container">
-  
-  <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-      <div>
-        <h1>Mathematics Tutorial - Voice Marks Entry</h1>
-        <p class="sub">Hands-free voice marking out of 10. Semester score calculated automatically out of 25.</p>
-      </div>
-      <div>
-        <button class="btn-outline" onclick="toggleSettings()">⚙️ Configure Batches & Tutorials</button>
-      </div>
-    </div>
-
-    <!-- Collapsible Settings Panel -->
-    <div id="settingsPanel" class="settings-panel" style="display: none;">
-      <h2>Settings & Class Configuration</h2>
-      <div class="flex-wrap" style="margin-bottom: 12px;">
-        <div>
-          <label>Rename Active Batch:</label><br/>
-          <input type="text" id="renameBatchInput" placeholder="e.g., Batch M-1" />
-          <button class="btn-outline" onclick="renameCurrentBatch()">Save Name</button>
-        </div>
-        <div>
-          <label>Add New Batch:</label><br/>
-          <input type="text" id="newBatchInput" placeholder="e.g., Batch 7" />
-          <button class="btn-primary" onclick="addNewBatch()">+ Add</button>
-        </div>
-        <div>
-          <label>Delete Current Batch:</label><br/>
-          <button class="btn-danger" onclick="deleteCurrentBatch()">Delete Batch</button>
-        </div>
-      </div>
-
-      <div class="flex-wrap" style="border-top: 1px solid #cbd5e1; padding-top: 12px;">
-        <div>
-          <label>Total Tutorials (Weeks):</label><br/>
-          <input type="number" id="numTutorialsInput" min="1" max="30" />
-          <button class="btn-outline" onclick="updateTutorialCount()">Apply</button>
-        </div>
-        <div>
-          <label>Students in this Batch:</label><br/>
-          <input type="number" id="numStudentsInput" min="1" max="150" />
-          <button class="btn-outline" onclick="updateStudentCount()">Apply</button>
-        </div>
-        <div>
-          <label>Bulk Student Names (CSV):</label><br/>
-          <input type="file" id="csvFileInput" accept=".csv,.txt" onchange="uploadStudentCSV(event)" style="font-size:0.8rem;" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Class Controls -->
-    <div class="flex-wrap" style="margin-top: 16px;">
-      <div>
-        <label>Select Batch:</label><br/>
-        <select id="batchDropdown" onchange="onBatchChange()"></select>
-      </div>
-
-      <div>
-        <label>Active Tutorial Week:</label><br/>
-        <select id="tutorialDropdown"></select>
-      </div>
-
-      <div style="margin-top: 18px;">
-        <button id="micBtn" class="mic-btn btn-primary" onclick="toggleMic()">
-          🎙️ <span id="micLabel">Turn On Mic</span>
-        </button>
-      </div>
-
-      <div style="margin-left: auto; margin-top: 18px;">
-        <button class="btn-success" onclick="exportToCSV()">📥 Download Excel (CSV)</button>
-      </div>
-    </div>
+<header><div class="top">
+  <h1>📐 Tutorial Marks Studio<small>Say a roll number and marks, and watch the table fill itself in</small></h1>
+  <div class="tools">
+    <button class="btn dark" id="bTheme" title="Light / dark" aria-label="Toggle dark mode">🌗</button>
+    <button class="btn dark" id="bBulk">👥 Student names</button>
+    <button class="btn dark" id="bSet">⚙️ Settings</button>
+    <button class="btn dark" id="bExpB">⬇️ Export batch</button>
+    <button class="btn dark" id="bExpA">⬇️ Export all</button>
   </div>
+</div></header>
 
-  <!-- Real-Time Voice Log -->
-  <div class="status-bar">
-    <div>
-      <span id="voiceLog"><strong>Voice Status:</strong> Mic is off. Click "Turn On Mic" to start.</span>
-    </div>
-    <div id="confirmedFeedback" style="font-weight: 700; color: #16a34a;"></div>
+<main>
+<section class="voice" aria-label="Voice entry">
+  <button id="mic" aria-pressed="false" aria-label="Start listening"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12z"/></svg></button>
+  <div class="vtxt">
+    <div id="micLabel">Start listening</div>
+    <div id="heard" aria-live="polite">Tap the mic and say “Roll 3 got 8”</div>
+    <span id="status" role="status">Ready</span>
+    <label class="hint" style="margin-left:.6rem"><input type="checkbox" id="speak"> Speak confirmations</label>
   </div>
+  <p class="tips">Say a connector word between roll and marks: <b>"Roll 3 got 5"</b>, <b>"Roll 3 score 5"</b>, <b>"Roll number 3 marks 5"</b>, <b>"Roll 12 gives eight point five"</b>. Also works: "Roll 25, 7". Other commands: <b>"undo"</b>, <b>"tutorial 4"</b>, <b>"batch C"</b> or a custom batch name ("open Morning").</p>
+</section>
 
-  <!-- Data Table -->
-  <div class="table-responsive">
-    <table id="marksTable">
-      <thead id="tableHead"></thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
-
+<div id="stats" aria-live="polite"></div>
+<div class="row">
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <input type="search" id="q" placeholder="🔍 Find student" aria-label="Find student">
+  <button class="btn pri" id="bAdd">+ Add batch</button>
+  <button class="btn" id="bRen">Rename</button>
+  <button class="btn" id="bCnt">Students</button>
+  <button class="btn" id="bDel">Delete</button>
+  <label class="sel">Tutorial <select id="week"></select></label>
 </div>
+<div class="wrap"><table id="tbl"></table></div>
+<div class="log" id="log"></div>
+<p class="hint">Click any mark to correct it (blank clears it). Final score = (average ÷ 10) × <span id="outTxt">25</span>. Data is saved automatically in this browser.</p>
+</main>
+
+<dialog id="dSet"><h2>Settings</h2>
+  <div class="g">
+    <label class="f">Tutorials<input type="number" id="cTut" min="1" max="52"></label>
+    <label class="f">Max mark<input type="number" id="cMax" min="1" max="100"></label>
+    <label class="f">Final out of<input type="number" id="cOut" min="1" max="100"></label>
+  </div>
+  <label class="f">Batches (one per line as <i>Name:students</i>)<textarea id="cBat"></textarea></label>
+  <label class="f">Voice language<select id="cLang"><option value="en-IN">English (India)</option><option value="en-US">English (US)</option><option value="en-GB">English (UK)</option></select></label>
+  <label><input type="checkbox" id="cBz"> Count blank tutorials as 0 in the average</label>
+  <div class="act"><button class="btn" id="sCancel">Cancel</button><button class="btn pri" id="sOk">Save settings</button></div>
+</dialog>
+
+<dialog id="dBulk"><h2>Bulk student names</h2>
+  <p class="hint" id="bulkFor"></p>
+  <label class="f">Paste CSV: <i>roll,name</i> per line, or just one name per line (assigned from Roll 1)<textarea id="bTxt" placeholder="1,Aarav Shah&#10;2,Diya Patel&#10;3,Kabir Rao"></textarea></label>
+  <label class="f">…or choose a CSV file<input type="file" id="bFile" accept=".csv,.txt"></label>
+  <label><input type="checkbox" id="bExt" checked> Add students if the list is longer than the batch</label>
+  <div class="act"><button class="btn" id="bCancel">Cancel</button><button class="btn pri" id="bOk">Apply names</button></div>
+</dialog>
 
 <script>
-  // New clean storage key version 2 (bypasses corrupted older versions)
-  const CONFIG_KEY = 'vm_v2_config';
-  const STORE_KEY = 'vm_v2_store';
+const $=s=>document.querySelector(s),LS='mathMarksV1';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mk=(n,c)=>({name:n,students:Array.from({length:c},()=>({name:'',marks:[]}))});
+let S;try{S=JSON.parse(localStorage.getItem(LS))}catch(_){}
+if(!S||!S.b)S={cfg:{tut:14,max:10,out:25,bz:false,lang:'en-IN',speak:true},b:'ABCDEF'.split('').map(l=>mk('Batch '+l,30)),cur:0,week:1};
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(_){}};
+const B=()=>S.b[S.cur];
+const fmt=n=>Number.isInteger(n)?String(n):n.toFixed(2).replace(/0$/,'');
+const cls=v=>v==null||v===''?'':(v/S.cfg.max>=.8?'hi':v/S.cfg.max>=.5?'mid':'lo');
+let undoStack=[],logs=[];
 
-  const DEFAULT_BATCHES = ["Batch 1", "Batch 2", "Batch 3", "Batch 4", "Batch 5", "Batch 6"];
-  const DEFAULT_TUTORIALS = 10;
-  const DEFAULT_STUDENTS = 30;
+/* ---------- calculations ---------- */
+function calc(st){
+  const c=S.cfg,v=st.marks.slice(0,c.tut).filter(x=>x!=null&&x!=='');
+  const sum=v.reduce((a,b)=>a+b,0),n=c.bz?c.tut:v.length;
+  const a10=n?(sum/n)/c.max*10:0;
+  return{a10,fin:a10/10*c.out,n:v.length};
+}
 
-  let config = {
-    batches: [...DEFAULT_BATCHES],
-    numTutorials: DEFAULT_TUTORIALS,
-    currentBatch: DEFAULT_BATCHES[0]
+/* ---------- rendering ---------- */
+function render(){
+  $('#tabs').innerHTML=S.b.map((b,i)=>`<button class="tab${i===S.cur?' act':''}" role="tab" data-b="${i}" title="Double-click to rename">${esc(b.name)}</button>`).join('');
+  $('#week').innerHTML=Array.from({length:S.cfg.tut},(_,i)=>`<option value="${i+1}"${i+1===S.week?' selected':''}>Tutorial ${i+1}</option>`).join('');
+  theme();$('#outTxt').textContent=S.cfg.out;
+  let h=`<thead><tr><th class="s1">Roll</th><th class="s2">Name</th>`;
+  for(let w=1;w<=S.cfg.tut;w++)h+=`<th class="${w===S.week?'cw':''}">T${w}</th>`;
+  h+=`<th>Avg /10</th><th>Final /${S.cfg.out}</th></tr></thead><tbody>`;
+  B().students.forEach((s,r)=>{
+    h+=`<tr id="r${r+1}"><td class="s1">${r+1}</td><td class="s2"><input class="nm" data-r="${r}" value="${esc(s.name)}" placeholder="Student name" aria-label="Name roll ${r+1}"></td>`;
+    for(let w=0;w<S.cfg.tut;w++)h+=`<td class="${w+1===S.week?'cw':''}"><input class="${cls(s.marks[w])}" inputmode="decimal" data-r="${r}" data-w="${w}" value="${s.marks[w]??''}" aria-label="Roll ${r+1} tutorial ${w+1}"></td>`;
+    h+=`<td class="avg"></td><td class="fin"></td></tr>`;
+  });
+  $('#tbl').innerHTML=h+'</tbody>';
+  B().students.forEach((_,r)=>updRow(r));
+  $('#speak').checked=S.cfg.speak;applyFilter();
+}
+function updRow(r){
+  const tr=$('#r'+(r+1));if(!tr)return;
+  const c=calc(B().students[r]);
+  tr.querySelector('.avg').textContent=c.n?fmt(+c.a10.toFixed(2)):'–';
+  tr.querySelector('.fin').textContent=c.n?c.fin.toFixed(2):'–';stats();
+}
+function flash(r){
+  const tr=$('#r'+(r+1));if(!tr)return;
+  if(tr.hidden){$('#q').value='';applyFilter()}
+  tr.classList.remove('flash');void tr.offsetWidth;tr.classList.add('flash');
+  tr.scrollIntoView({block:'center',behavior:'smooth'});
+}
+function status(type,msg){const e=$('#status');e.className=type;e.textContent=msg}
+function heard(t,interim){const e=$('#heard');e.textContent=t;e.className=interim?'interim':''}
+function addLog(t){logs.unshift(t);logs=logs.slice(0,8);$('#log').innerHTML='Recent: '+logs.map(l=>`<span>${esc(l)}</span>`).join('')}
+
+/* ---------- dashboard extras ---------- */
+function theme(){document.documentElement.dataset.theme=S.cfg.theme||''}
+function applyFilter(){const q=($('#q').value||'').toLowerCase().trim();B().students.forEach((s,r)=>{const tr=$('#r'+(r+1));if(tr)tr.hidden=!!q&&!((r+1)+' '+s.name.toLowerCase()).includes(q)})}
+function stats(){
+  const w=S.week-1,st=B().students,n=st.length,v=st.map(s=>s.marks[w]).filter(x=>x!=null&&x!==''),
+  avg=v.length?v.reduce((a,b)=>a+b,0)/v.length:0,
+  fins=st.map((s,i)=>({i,s,c:calc(s)})).filter(o=>o.c.n),
+  cf=fins.length?fins.reduce((a,o)=>a+o.c.fin,0)/fins.length:0,
+  top=[...fins].sort((a,b)=>b.c.fin-a.c.fin)[0],
+  nx=st.findIndex(s=>s.marks[w]==null||s.marks[w]===''),pct=n?Math.round(v.length/n*100):0;
+  $('#stats').innerHTML=`<div class="card"><small>Tutorial ${S.week} entered</small><b>${v.length} / ${n}</b><div class="bar"><i style="width:${pct}%"></i></div></div>
+  <div class="card"><small>Tutorial average</small><b>${v.length?fmt(+avg.toFixed(2)):'–'}</b><small>out of ${S.cfg.max}</small></div>
+  <div class="card"><small>Class final average</small><b>${fins.length?cf.toFixed(2):'–'}</b><small>out of ${S.cfg.out}</small></div>
+  <div class="card"><small>Top scorer</small><b>${top?esc(top.s.name||'Roll '+(top.i+1)):'–'}</b><small>${top?top.c.fin.toFixed(2)+' / '+S.cfg.out:'No marks yet'}</small></div>
+  <div class="card ${nx>=0?'go" data-go="'+nx+'':''}"><small>${nx>=0?'Next without marks':'All done'}</small><b>${nx>=0?'Roll '+(nx+1):'🎉 Complete'}</b><small>${nx>=0?'tap to jump there':'everyone has marks'}</small></div>`;
+}
+function nextPending(){
+  const w=S.week-1,i=B().students.findIndex(s=>s.marks[w]==null||s.marks[w]==='');
+  if(i<0){status('ok','Everyone has marks for this tutorial 🎉');return say('All students are done')}
+  flash(i);const nm=B().students[i].name;status('ok','Next: Roll '+(i+1)+(nm?' ('+nm+')':''));say('Next is roll '+(i+1));
+}
+/* ---------- mark setting ---------- */
+function setMark(b,r,w,val,src){
+  const st=S.b[b].students[r],old=st.marks[w]??null;
+  undoStack.push({b,r,w,old});undoStack=undoStack.slice(-50);
+  st.marks[w]=val;save();
+  if(b===S.cur){const inp=document.querySelector(`input[data-r="${r}"][data-w="${w}"]`);if(inp){inp.value=val??'';inp.className=cls(val)}updRow(r);if(src==='voice')flash(r)}
+  return old;
+}
+function undo(){
+  const u=undoStack.pop();if(!u){status('err','Nothing to undo');return say('Nothing to undo')}
+  S.cur=u.b;render();setMark(u.b,u.r,u.w,u.old,'x');undoStack.pop();flash(u.r);
+  status('ok',`Undone: Roll ${u.r+1}, tutorial ${u.w+1}`);addLog(`Undo roll ${u.r+1}`);say('Undone');
+}
+$('#tbl').addEventListener('change',e=>{
+  const t=e.target,r=+t.dataset.r;
+  if(t.dataset.w===undefined){B().students[r].name=t.value.trim();save();return}
+  const w=+t.dataset.w,txt=t.value.trim();
+  if(txt===''){setMark(S.cur,r,w,null);return}
+  const v=parseFloat(txt);
+  if(isNaN(v)||v<0||v>S.cfg.max){status('err',`Marks must be between 0 and ${S.cfg.max}`);t.value=B().students[r].marks[w]??'';return}
+  setMark(S.cur,r,w,Math.round(v*100)/100);
+});
+$('#tbl').addEventListener('focusin',e=>{if(e.target.dataset.w!==undefined)e.target.select()});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-b]');if(b){S.cur=+b.dataset.b;save();render()}});
+function renameBatch(i){
+  const n=prompt('Batch name:',S.b[i].name);
+  if(n&&n.trim()){S.b[i].name=n.trim().slice(0,40);save();render();status('ok','Batch renamed to '+S.b[i].name)}
+}
+$('#bRen').onclick=()=>renameBatch(S.cur);
+$('#bAdd').onclick=()=>{
+  const n=prompt('New batch name:','Batch '+(S.b.length+1));if(!n||!n.trim())return;
+  const c=Math.min(500,Math.max(1,parseInt(prompt('Number of students:',B().students.length))||30));
+  S.b.push(mk(n.trim().slice(0,40),c));S.cur=S.b.length-1;save();render();status('ok',`Added ${S.b[S.cur].name} with ${c} students`);
+};
+$('#bCnt').onclick=()=>{
+  const st=B().students,c=parseInt(prompt(`Number of students in ${B().name}:`,st.length));
+  if(!c||c<1||c>500||c===st.length)return;
+  if(c<st.length&&st.slice(c).some(s=>s.name||s.marks.some(x=>x!=null))&&!confirm('Students beyond roll '+c+' have data and will be removed. Continue?'))return;
+  if(c<st.length)st.length=c;else while(st.length<c)st.push({name:'',marks:[]});
+  save();render();status('ok',`${B().name} now has ${c} students`);
+};
+$('#bDel').onclick=()=>{
+  if(S.b.length<2)return alert('Keep at least one batch.');
+  if(!confirm(`Delete ${B().name} and all its marks?`))return;
+  S.b.splice(S.cur,1);S.cur=Math.max(0,S.cur-1);save();render();status('ok','Batch deleted');
+};
+$('#tabs').addEventListener('dblclick',e=>{const b=e.target.closest('[data-b]');if(b)renameBatch(+b.dataset.b)});
+$('#week').onchange=e=>{S.week=+e.target.value;save();render()};
+$('#speak').onchange=e=>{S.cfg.speak=e.target.checked;save()};
+$('#bTheme').onclick=()=>{S.cfg.theme=S.cfg.theme==='dark'?'':'dark';save();theme()};
+$('#q').oninput=applyFilter;
+$('#stats').addEventListener('click',e=>{const c=e.target.closest('[data-go]');if(c)flash(+c.dataset.go)});
+
+/* ---------- speech parsing ---------- */
+const U=Object.assign(Object.create(null),{zero:0,oh:0,one:1,won:1,wan:1,two:2,to:2,too:2,tu:2,three:3,tree:3,free:3,four:4,for:4,fore:4,five:5,six:6,sex:6,seven:7,eight:8,ate:8,nine:9,ten:10,tin:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19});
+const T=Object.assign(Object.create(null),{twenty:20,thirty:30,forty:40,fifty:50});
+const AMB=new Set(['to','too','for','fore','won','ate','tree','free','sex','oh','tu','wan']);
+const isD=t=>/^\d+(\.\d+)?$/.test(t||'');
+const isN=t=>t&&(isD(t)||(t in U&&!AMB.has(t))||t in T);
+function tokens(s){
+  s=s.toLowerCase().replace(/[-,]/g,' ').replace(/(\d)(st|nd|rd|th)\b/g,'$1')
+   .replace(/\bout of \w+/g,' ')
+   .replace(/\b(and a half|a half|and half)\b/g,' halfmark ')
+   .replace(/\b(roll|role|rule|rol|rolls|rowl|rolled|rawl)\b/g,' R ')
+   .replace(/\b(number|numbers|num|no)\b/g,' ')
+   .replace(/\b(got|gets|get|gave|gives|give|score|scored|scores|marks?|is|has|obtained|equals?|secured|awarded|with)\b|:/g,' | ')
+   .replace(/[^a-z0-9.|\s]/g,' ');
+  const raw=s.split(/\s+/).filter(Boolean),out=[];
+  for(let i=0;i<raw.length;i++){
+    const t=raw[i],last=out[out.length-1],nx=raw[i+1];
+    if((t==='to'||t==='for'||t==='too'||t==='fore')&&isN(last)&&(isN(nx)||(nx in U))){out.push('|');continue}
+    if(t==='halfmark'){if(isN(last))out[out.length-1]=String(parseFloat(last)+.5);continue}
+    if((t==='point'||t==='dot')&&isN(last)){
+      let d='';
+      while(raw[i+1]!==undefined&&(/^\d$/.test(raw[i+1])||(raw[i+1] in U&&U[raw[i+1]]<10))){d+=/^\d$/.test(raw[i+1])?raw[i+1]:U[raw[i+1]];i++}
+      if(d)out[out.length-1]=String(parseFloat(last))+'.'+d;continue}
+    if(t in T){let v=T[t];if(nx in U&&U[nx]>=1&&U[nx]<=9){v+=U[nx];i++}out.push(String(v));continue}
+    if(t in U){out.push(String(U[t]));continue}
+    if(isD(t)||t==='R'||t==='|')out.push(t);
+    else if(/^\d+\.$/.test(t))out.push(t.slice(0,-1));
+  }
+  return out;
+}
+function splitDigits(s,count,max){
+  for(let k=1;k<s.length;k++){const r=+s.slice(0,k),m=+s.slice(k);if(r>=1&&r<=count&&m<=max)return[r,m]}
+  return null;
+}
+function parseMarks(text){
+  const segs=[[]];
+  for(const t of tokens(text)){if(t==='|')segs.push([]);else if(t!=='R')segs[segs.length-1].push(t)}
+  const ne=segs.filter(s=>s.length),count=B().students.length,max=S.cfg.max;
+  let roll,marks;
+  if(ne.length>=2){roll=ne[0][0];marks=ne[1][0]}
+  else if(ne.length&&ne[0].length>=2){roll=ne[0][0];marks=ne[0][1]}
+  else if(ne.length&&/^\d{2,}$/.test(ne[0][0])){
+    const sp=splitDigits(ne[0][0],count,max);if(!sp)return{err:'Could not separate roll and marks. Say "Roll 3 got 5".'};[roll,marks]=sp;
+  }else return{err:'Say a roll number and marks, e.g. "Roll 3 got 5".'};
+  roll=+roll;marks=+marks;
+  if(!Number.isInteger(roll)||roll<1||roll>count)return{err:`Roll ${roll} is not in ${B().name} (1–${count}).`};
+  if(isNaN(marks)||marks<0||marks>max)return{err:`${marks} is outside 0–${max}.`};
+  return{roll,marks:Math.round(marks*100)/100};
+}
+
+/* ---------- command handling ---------- */
+function handle(raw){
+  heard(raw);
+  const t=raw.toLowerCase().trim();
+  if(/^(please )?(undo|cancel last)\b/.test(t))return undo();
+  if(/^(next|who is next|pending|who is pending)\b/.test(t))return nextPending();
+  let m=t.match(/^(?:go to |open |select )?(?:week|tutorial)\s+(.+)$/);
+  if(m){const n=tokens(m[1]).find(isD);const w=n&&+n;
+    if(w>=1&&w<=S.cfg.tut){S.week=w;save();render();status('ok',`Tutorial ${w} selected`);return say(`Tutorial ${w}`)}
+    return status('err','Tutorial not recognised')}
+  m=t.match(/^(?:(?:go to|open|select)\s+(?:batch\s+)?|batch\s+)(.+)$/);
+  if(m){const k=m[1].trim(),L=S.b.map(b=>b.name.toLowerCase()),i=[L.findIndex(n=>n===k),L.findIndex(n=>n.split(/\s+/).includes(k)),k.length>2?L.findIndex(n=>n.includes(k)):-1].find(x=>x>=0)??-1;
+    if(i>=0){S.cur=i;save();render();status('ok',`${B().name} selected`);return say(B().name)}
+    return status('err',`Batch "${k}" not found`)}
+  const p=parseMarks(raw);
+  if(p.err){status('err',p.err);addLog('✗ '+raw);return say('Please repeat')}
+  const old=setMark(S.cur,p.roll-1,S.week-1,p.marks,'voice');
+  const nm=B().students[p.roll-1].name;
+  status('ok',`Roll ${p.roll}${nm?' ('+nm+')':''}: ${p.marks} marks, tutorial ${S.week}${old!=null?` (was ${old})`:''}`);
+  addLog(`${B().name.replace('Batch ','')} · R${p.roll} = ${p.marks}`);
+  say(`Roll ${p.roll}, ${p.marks} marks ${old!=null?'updated':'recorded'}`);
+}
+
+/* ---------- audio ---------- */
+let actx,speaking=false;
+function beep(f=880){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;g.gain.value=.12;o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+.12)}catch(_){}}
+function say(msg){
+  beep(/repeat|Nothing/.test(msg)?300:880);
+  if(!S.cfg.speak||!('speechSynthesis' in window))return;
+  const u=new SpeechSynthesisUtterance(msg);u.lang=S.cfg.lang;u.rate=1.1;
+  speaking=true;u.onend=u.onerror=()=>setTimeout(()=>speaking=false,300);
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+}
+
+/* ---------- recognition ---------- */
+let rec,listening=false;
+function ui(){
+  const m=$('#mic');m.classList.toggle('on',listening);m.setAttribute('aria-pressed',listening);
+  $('#micLabel').textContent=listening?'Listening… tap to stop':'Start listening';
+  m.setAttribute('aria-label',listening?'Stop listening':'Start listening');
+}
+function startRec(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return status('err','Speech recognition is not supported in this browser. Use Chrome or Edge.');
+  rec=new SR();rec.lang=S.cfg.lang;rec.continuous=true;rec.interimResults=true;
+  rec.onresult=e=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const r=e.results[i];
+      if(r.isFinal){if(!speaking)handle(r[0].transcript)}else interim+=r[0].transcript;
+    }
+    if(interim&&!speaking)heard(interim+' …',true);
   };
-
-  let studentStore = {};
-
-  function makeDefaultStudents(count, tutCount) {
-    const arr = [];
-    for (let i = 1; i <= count; i++) {
-      arr.push({
-        roll: i,
-        name: `Roll ${i}`,
-        marks: Array(tutCount).fill("")
-      });
-    }
-    return arr;
-  }
-
-  function initAppState() {
-    try {
-      const c = localStorage.getItem(CONFIG_KEY);
-      const s = localStorage.getItem(STORE_KEY);
-      if (c) config = JSON.parse(c);
-      if (s) studentStore = JSON.parse(s);
-    } catch(err) {
-      console.error("Local data reset:", err);
-    }
-
-    if (!Array.isArray(config.batches) || config.batches.length === 0) {
-      config.batches = [...DEFAULT_BATCHES];
-    }
-    if (!config.currentBatch || !config.batches.includes(config.currentBatch)) {
-      config.currentBatch = config.batches[0];
-    }
-    if (!config.numTutorials || isNaN(config.numTutorials)) {
-      config.numTutorials = DEFAULT_TUTORIALS;
-    }
-
-    config.batches.forEach(b => {
-      if (!studentStore[b] || !Array.isArray(studentStore[b]) || studentStore[b].length === 0) {
-        studentStore[b] = makeDefaultStudents(DEFAULT_STUDENTS, config.numTutorials);
-      }
-    });
-
-    saveAppState();
-  }
-
-  function saveAppState() {
-    try {
-      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-      localStorage.setItem(STORE_KEY, JSON.stringify(studentStore));
-    } catch (e) {}
-  }
-
-  function populateDropdowns() {
-    const bSel = document.getElementById('batchDropdown');
-    bSel.innerHTML = '';
-    config.batches.forEach(b => {
-      const opt = document.createElement('option');
-      opt.value = b;
-      opt.textContent = b;
-      if (b === config.currentBatch) opt.selected = true;
-      bSel.appendChild(opt);
-    });
-
-    const tSel = document.getElementById('tutorialDropdown');
-    const oldVal = tSel.value;
-    tSel.innerHTML = '';
-    for (let i = 1; i <= config.numTutorials; i++) {
-      const opt = document.createElement('option');
-      opt.value = i - 1;
-      opt.textContent = `Tutorial ${i}`;
-      tSel.appendChild(opt);
-    }
-    if (oldVal && oldVal < config.numTutorials) tSel.value = oldVal;
-  }
-
-  function renderTable() {
-    const thead = document.getElementById('tableHead');
-    const tbody = document.getElementById('tableBody');
-    const students = studentStore[config.currentBatch] || [];
-
-    let hHtml = `<tr>
-      <th style="width:50px;">Roll</th>
-      <th style="width:140px; text-align:left; padding-left:8px;">Student Name</th>`;
-    for (let t = 1; t <= config.numTutorials; t++) {
-      hHtml += `<th>T${t}</th>`;
-    }
-    hHtml += `<th>Avg (/10)</th><th class="score-cell">Final (/25)</th></tr>`;
-    thead.innerHTML = hHtml;
-
-    let bHtml = '';
-    students.forEach((s, idx) => {
-      let sum = 0, count = 0;
-      let inputsHtml = '';
-
-      for (let t = 0; t < config.numTutorials; t++) {
-        const val = s.marks && s.marks[t] !== undefined ? s.marks[t] : '';
-        const isAb = (val === 'AB' || val === 'ab');
-        const num = parseFloat(val);
-
-        if (!isAb && !isNaN(num)) {
-          sum += num;
-          count++;
-        }
-
-        inputsHtml += `<td><input class="mark-input ${isAb ? 'is-absent' : ''}" 
-                        type="text" 
-                        value="${val}" 
-                        onchange="updateMark(${idx}, ${t}, this.value)" /></td>`;
-      }
-
-      const avg = count > 0 ? (sum / count) : 0;
-      const final25 = count > 0 ? (avg * 2.5) : 0;
-
-      bHtml += `<tr id="student-row-${s.roll}">
-        <td><strong>${s.roll}</strong></td>
-        <td><input class="name-input" type="text" value="${s.name}" onchange="updateName(${idx}, this.value)" /></td>
-        ${inputsHtml}
-        <td>${count > 0 ? avg.toFixed(2) : '-'}</td>
-        <td class="score-cell">${count > 0 ? final25.toFixed(2) : '-'}</td>
-      </tr>`;
-    });
-
-    tbody.innerHTML = bHtml;
-  }
-
-  function updateName(idx, val) {
-    studentStore[config.currentBatch][idx].name = val.trim();
-    saveAppState();
-  }
-
-  function updateMark(idx, tIdx, val) {
-    val = val.trim();
-    if (val.toUpperCase() === 'AB') {
-      studentStore[config.currentBatch][idx].marks[tIdx] = 'AB';
-    } else if (val === '') {
-      studentStore[config.currentBatch][idx].marks[tIdx] = '';
-    } else {
-      const num = parseFloat(val);
-      if (isNaN(num) || num < 0 || num > 10) {
-        alert("Enter marks between 0 and 10, or 'AB' for Absent.");
-        renderTable();
-        return;
-      }
-      studentStore[config.currentBatch][idx].marks[tIdx] = num;
-    }
-    saveAppState();
-    renderTable();
-  }
-
-  function onBatchChange() {
-    config.currentBatch = document.getElementById('batchDropdown').value;
-    saveAppState();
-    syncSettingsInputs();
-    renderTable();
-  }
-
-  function toggleSettings() {
-    const p = document.getElementById('settingsPanel');
-    p.style.display = p.style.display === 'none' ? 'block' : 'none';
-    syncSettingsInputs();
-  }
-
-  function syncSettingsInputs() {
-    document.getElementById('renameBatchInput').value = config.currentBatch;
-    document.getElementById('numTutorialsInput').value = config.numTutorials;
-    const students = studentStore[config.currentBatch] || [];
-    document.getElementById('numStudentsInput').value = students.length;
-  }
-
-  function renameCurrentBatch() {
-    const name = document.getElementById('renameBatchInput').value.trim();
-    if (!name) return alert("Batch name cannot be blank.");
-    if (name === config.currentBatch) return;
-    if (config.batches.includes(name)) return alert("Batch name already exists.");
-
-    const old = config.currentBatch;
-    config.batches[config.batches.indexOf(old)] = name;
-    studentStore[name] = studentStore[old];
-    delete studentStore[old];
-    config.currentBatch = name;
-
-    saveAppState();
-    populateDropdowns();
-    renderTable();
-  }
-
-  function addNewBatch() {
-    const name = document.getElementById('newBatchInput').value.trim();
-    if (!name) return alert("Enter batch name.");
-    if (config.batches.includes(name)) return alert("Batch already exists.");
-
-    config.batches.push(name);
-    studentStore[name] = makeDefaultStudents(DEFAULT_STUDENTS, config.numTutorials);
-    config.currentBatch = name;
-    document.getElementById('newBatchInput').value = '';
-
-    saveAppState();
-    populateDropdowns();
-    renderTable();
-    syncSettingsInputs();
-  }
-
-  function deleteCurrentBatch() {
-    if (config.batches.length <= 1) return alert("Must keep at least 1 batch.");
-    if (!confirm(`Delete ${config.currentBatch}?`)) return;
-
-    const del = config.currentBatch;
-    config.batches = config.batches.filter(b => b !== del);
-    delete studentStore[del];
-    config.currentBatch = config.batches[0];
-
-    saveAppState();
-    populateDropdowns();
-    renderTable();
-    syncSettingsInputs();
-  }
-
-  function updateTutorialCount() {
-    const val = parseInt(document.getElementById('numTutorialsInput').value);
-    if (isNaN(val) || val < 1 || val > 30) return alert("Tutorials must be 1 to 30.");
-
-    config.numTutorials = val;
-    config.batches.forEach(b => {
-      (studentStore[b] || []).forEach(st => {
-        if (!st.marks) st.marks = [];
-        while (st.marks.length < val) st.marks.push("");
-        if (st.marks.length > val) st.marks = st.marks.slice(0, val);
-      });
-    });
-
-    saveAppState();
-    populateDropdowns();
-    renderTable();
-  }
-
-  function updateStudentCount() {
-    const val = parseInt(document.getElementById('numStudentsInput').value);
-    if (isNaN(val) || val < 1 || val > 150) return alert("Count must be 1 to 150.");
-
-    let list = studentStore[config.currentBatch] || [];
-    if (val > list.length) {
-      for (let i = list.length + 1; i <= val; i++) {
-        list.push({ roll: i, name: `Roll ${i}`, marks: Array(config.numTutorials).fill("") });
-      }
-    } else if (val < list.length) {
-      if (confirm(`Remove last ${list.length - val} students?`)) {
-        list = list.slice(0, val);
-      } else {
-        return;
-      }
-    }
-    studentStore[config.currentBatch] = list;
-    saveAppState();
-    renderTable();
-  }
-
-  function uploadStudentCSV(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      const lines = evt.target.result.split(/\r?\n/).map(l => l.trim()).filter(l => l);
-      if (lines.length === 0) return alert("Empty CSV");
-
-      let list = studentStore[config.currentBatch] || [];
-      lines.forEach((line, idx) => {
-        const parts = line.split(',');
-        const name = parts.length > 1 ? parts[1].trim() : parts[0].trim();
-        if (idx < list.length) {
-          list[idx].name = name;
-        } else {
-          list.push({ roll: idx + 1, name: name, marks: Array(config.numTutorials).fill("") });
-        }
-      });
-      studentStore[config.currentBatch] = list;
-      saveAppState();
-      renderTable();
-      syncSettingsInputs();
-      alert(`Imported ${lines.length} names.`);
-    };
-    reader.readAsText(file);
-  }
-
-  // Speech System
-  const wordMap = {
-    "zero": 0, "one": 1, "won": 1, "two": 2, "to": 2, "too": 2, "three": 3, "tree": 3,
-    "four": 4, "for": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "ate": 8, "nine": 9, "ten": 10,
-    "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16,
-    "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "point": ".", "half": ".5"
+  rec.onerror=e=>{
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){listening=false;status('err','Microphone blocked. Allow mic access in the browser address bar.');ui()}
+    else if(e.error!=='no-speech'&&e.error!=='aborted')status('err','Voice error: '+e.error);
   };
+  rec.onend=()=>{if(listening)setTimeout(()=>{try{rec.start()}catch(_){}},250);else ui()};
+  listening=true;try{rec.start();status('',location.protocol==='file:'?'Listening. Opened from a file, so Chrome may re-ask for the mic. Run via localhost to stop this.':'Listening for commands')}catch(_){}
+  ui();
+}
+function stopRec(){listening=false;try{rec.stop()}catch(_){}ui();status('','Stopped')}
+$('#mic').onclick=()=>listening?stopRec():startRec();
 
-  function normalizeSpeech(str) {
-    let text = str.toLowerCase().replace(/,/g, ' ');
-    text = text.replace(/\b(rule|role|row|hole|pole|raw)\b/gi, 'roll');
+/* ---------- settings ---------- */
+$('#bSet').onclick=()=>{
+  const c=S.cfg;$('#cTut').value=c.tut;$('#cMax').value=c.max;$('#cOut').value=c.out;$('#cLang').value=c.lang;$('#cBz').checked=c.bz;
+  $('#cBat').value=S.b.map(b=>`${b.name}:${b.students.length}`).join('\n');$('#dSet').showModal();
+};
+$('#sCancel').onclick=()=>$('#dSet').close();
+$('#sOk').onclick=()=>{
+  const lines=$('#cBat').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length)return alert('Add at least one batch.');
+  const nb=lines.map((l,i)=>{
+    const m=l.match(/^(.*?)(?:\s*:\s*(\d+))?$/),name=m[1].trim()||'Batch '+(i+1),cnt=Math.min(500,Math.max(1,+m[2]||30)),old=S.b[i];
+    if(!old)return mk(name,cnt);
+    const st=old.students.slice(0,cnt);while(st.length<cnt)st.push({name:'',marks:[]});
+    return{name,students:st};
+  });
+  const lost=S.b.some((b,i)=>!nb[i]||b.students.slice(nb[i].students.length).some(s=>s.name||s.marks.some(x=>x!=null)));
+  if(lost&&!confirm('Some batches or students with data will be removed. Continue?'))return;
+  const tut=Math.min(52,Math.max(1,+$('#cTut').value||14));
+  Object.assign(S.cfg,{tut,max:Math.max(1,+$('#cMax').value||10),out:Math.max(1,+$('#cOut').value||25),lang:$('#cLang').value,bz:$('#cBz').checked});
+  S.b=nb;S.cur=Math.min(S.cur,nb.length-1);S.week=Math.min(S.week,tut);
+  save();render();$('#dSet').close();if(listening){stopRec();startRec()}
+};
 
-    const tens = { "twenty": 20, "thirty": 30 };
-    const units = { "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9 };
-    for (let t in tens) {
-      for (let u in units) {
-        text = text.replace(new RegExp(`\\b${t}\\s+${u}\\b`, 'g'), tens[t] + units[u]);
-      }
-    }
+/* ---------- bulk names ---------- */
+$('#bBulk').onclick=()=>{$('#bulkFor').textContent=`Applies to ${B().name} (${B().students.length} students).`;$('#bTxt').value='';$('#bFile').value='';$('#dBulk').showModal()};
+$('#bCancel').onclick=()=>$('#dBulk').close();
+$('#bFile').onchange=e=>{const f=e.target.files[0];if(f)f.text().then(t=>$('#bTxt').value=t)};
+function cells(l){const o=[];let c='',q=false;for(const ch of l){if(ch==='"')q=!q;else if(!q&&/[,;\t]/.test(ch)){o.push(c.trim());c=''}else c+=ch}o.push(c.trim());return o}
+$('#bOk').onclick=()=>{
+  const lines=$('#bTxt').value.replace(/^\uFEFF/,'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  let seq=1,n=0;const st=B().students;
+  lines.forEach((l,i)=>{
+    const c=cells(l);let roll,name;
+    if(c.length>=2&&/^\d+$/.test(c[0])){roll=+c[0];name=c.slice(1).filter(Boolean).join(' ');seq=roll+1}
+    else if(i===0&&c.length>=2&&/roll|sr|no|id/i.test(c[0])&&/name/i.test(c[1]))return;
+    else{roll=seq++;name=c.join(' ')}
+    if(roll<1||roll>500||!name)return;
+    if(roll>st.length){if(!$('#bExt').checked)return;while(st.length<roll)st.push({name:'',marks:[]})}
+    st[roll-1].name=name;n++;
+  });
+  save();render();$('#dBulk').close();status('ok',`Updated ${n} student names`);
+};
 
-    let words = text.split(/\s+/);
-    return words.map(w => wordMap[w] !== undefined ? wordMap[w] : w).join(" ");
-  }
+/* ---------- export ---------- */
+function csv(batches){
+  const q=v=>/[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v;
+  const head=['Batch','Roll','Name',...Array.from({length:S.cfg.tut},(_,i)=>'Tutorial '+(i+1)),'Average /10',`Final /${S.cfg.out}`];
+  const rows=[head];
+  batches.forEach(b=>b.students.forEach((s,r)=>{
+    const c=calc(s);
+    rows.push([b.name,r+1,s.name,...Array.from({length:S.cfg.tut},(_,i)=>s.marks[i]??''),c.n?+c.a10.toFixed(2):'',c.n?+c.fin.toFixed(2):'']);
+  }));
+  return '\uFEFF'+rows.map(r=>r.map(q).join(',')).join('\r\n');
+}
+async function dl(name,txt){
+  const blob=new Blob([txt],{type:'text/csv;charset=utf-8'});
+  try{
+    const d=window.claude&&await claude.use('downloads');
+    if(d){await d.save({filename:name,data:blob});status('ok','Exported '+name);return}
+  }catch(e){if(e&&e.code==='declined')return status('','Export cancelled');status('err','Export failed: '+(e.message||e))}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},1500);
+  status('ok','Exported '+name);
+}
+$('#bExpB').onclick=()=>dl(`${(B().name.replace(/[^\w]+/g,'_').replace(/^_+|_+$/g,'')||'batch')}_marks.csv`,csv([B()]));
+$('#bExpA').onclick=()=>dl('all_batches_marks.csv',csv(S.b));
 
-  let recognition;
-  let isListening = false;
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-
-    recognition.onresult = function(e) {
-      const text = e.results[e.results.length - 1][0].transcript;
-      document.getElementById('voiceLog').innerHTML = `<strong>Heard:</strong> "${text}"`;
-      parseSpeech(text);
-    };
-
-    recognition.onend = function() {
-      if (isListening) recognition.start();
-    };
-  }
-
-  function toggleMic() {
-    if (!SpeechRecognition) return alert("Speech recognition only works in Chrome or Edge.");
-    const btn = document.getElementById('micBtn');
-    if (!isListening) {
-      recognition.start();
-      isListening = true;
-      btn.classList.add('active');
-      document.getElementById('micLabel').innerText = "Listening...";
-      speak("Ready");
-    } else {
-      isListening = false;
-      recognition.stop();
-      btn.classList.remove('active');
-      document.getElementById('micLabel').innerText = "Turn On Mic";
-    }
-  }
-
-  function parseSpeech(raw) {
-    const tutIdx = parseInt(document.getElementById('tutorialDropdown').value);
-    const students = studentStore[config.currentBatch] || [];
-    const text = normalizeSpeech(raw);
-
-    const abMatch = text.match(/roll(?:\s*(?:no|number))?\s*(\d{1,3})\s*(?:is\s*)?absent/i);
-    if (abMatch) {
-      const roll = parseInt(abMatch[1]);
-      const sIdx = students.findIndex(s => s.roll === roll);
-      if (sIdx !== -1) {
-        students[sIdx].marks[tutIdx] = 'AB';
-        saveAppState();
-        renderTable();
-        highlight(roll);
-        speak(`Roll ${roll} Absent`);
-        return;
-      }
-    }
-
-    const markMatch = text.match(/roll(?:\s*(?:no|number))?\s*(\d{1,3})\s*(?:got|score|marks|mark|is|=|,)?\s*(\d+(?:\.\d+)?)/i);
-    if (markMatch) {
-      const roll = parseInt(markMatch[1]);
-      const marks = parseFloat(markMatch[2]);
-      const sIdx = students.findIndex(s => s.roll === roll);
-
-      if (sIdx === -1) return speak(`Roll ${roll} not found`);
-      if (marks < 0 || marks > 10) return speak("Marks out of 10 only");
-
-      students[sIdx].marks[tutIdx] = marks;
-      saveAppState();
-      renderTable();
-      highlight(roll);
-      document.getElementById('confirmedFeedback').innerText = `Roll ${roll} = ${marks}`;
-      speak(`Roll ${roll}, ${marks}`);
-    }
-  }
-
-  function highlight(roll) {
-    const el = document.getElementById(`student-row-${roll}`);
-    if (el) {
-      el.classList.add('highlight-voice');
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => el.classList.remove('highlight-voice'), 2000);
-    }
-  }
-
-  function speak(msg) {
-    if ('speechSynthesis' in window) {
-      const u = new SpeechSynthesisUtterance(msg);
-      window.speechSynthesis.speak(u);
-    }
-  }
-
-  function exportToCSV() {
-    const batch = config.currentBatch;
-    const students = studentStore[batch] || [];
-    let header = ["Roll No", "Student Name"];
-    for (let t = 1; t <= config.numTutorials; t++) header.push(`T${t}`);
-    header.push("Average (/10)", "Final (/25)");
-    let csv = header.join(",") + "\n";
-
-    students.forEach(s => {
-      let row = [s.roll, `"${s.name}"`];
-      let sum = 0, count = 0;
-      for (let t = 0; t < config.numTutorials; t++) {
-        const val = s.marks && s.marks[t] !== undefined ? s.marks[t] : "";
-        row.push(val);
-        if (val !== "" && val !== "AB" && !isNaN(parseFloat(val))) {
-          sum += parseFloat(val);
-          count++;
-        }
-      }
-      const avg = count > 0 ? (sum / count).toFixed(2) : "";
-      const final25 = count > 0 ? ((sum / count) * 2.5).toFixed(2) : "";
-      row.push(avg, final25);
-      csv += row.join(",") + "\n";
-    });
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${batch}_Marks.csv`;
-    link.click();
-  }
-
-  // Direct synchronous startup
-  initAppState();
-  populateDropdowns();
-  renderTable();
+render();
 </script>
 </body>
 </html>
