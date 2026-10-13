@@ -98,6 +98,7 @@ td input.hi{background:var(--hi)}td input.mid{background:var(--mid)}td input.lo{
 .card.go{cursor:pointer;border-color:var(--acc)}.card.go:hover{background:var(--head)}
 .bar{height:8px;background:var(--head);border-radius:9px;overflow:hidden;margin-top:.4rem}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),#7bd8c9);transition:width .4s}
 #q{min-width:150px}
+td input.rl{width:3.9rem;font-weight:650}.s1{min-width:66px}.s2{left:66px}
 </style>
 </head>
 <body>
@@ -131,6 +132,7 @@ td input.hi{background:var(--hi)}td input.mid{background:var(--mid)}td input.lo{
   <button class="btn pri" id="bAdd">+ Add batch</button>
   <button class="btn" id="bRen">Rename</button>
   <button class="btn" id="bCnt">Students</button>
+  <button class="btn" id="bRoll">Roll numbers</button>
   <button class="btn" id="bDel">Delete</button>
   <label class="sel">Tutorial <select id="week"></select></label>
 </div>
@@ -153,7 +155,7 @@ td input.hi{background:var(--hi)}td input.mid{background:var(--mid)}td input.lo{
 
 <dialog id="dBulk"><h2>Bulk student names</h2>
   <p class="hint" id="bulkFor"></p>
-  <label class="f">Paste CSV: <i>roll,name</i> per line, or just one name per line (assigned from Roll 1)<textarea id="bTxt" placeholder="1,Aarav Shah&#10;2,Diya Patel&#10;3,Kabir Rao"></textarea></label>
+  <label class="f">Paste CSV: <i>roll,name</i> per line (roll can be any number, e.g. 2301), or just one name per line (filled in order)<textarea id="bTxt" placeholder="1,Aarav Shah&#10;2,Diya Patel&#10;3,Kabir Rao"></textarea></label>
   <label class="f">…or choose a CSV file<input type="file" id="bFile" accept=".csv,.txt"></label>
   <label><input type="checkbox" id="bExt" checked> Add students if the list is longer than the batch</label>
   <div class="act"><button class="btn" id="bCancel">Cancel</button><button class="btn pri" id="bOk">Apply names</button></div>
@@ -168,6 +170,7 @@ if(!S||!S.b)S={cfg:{tut:14,max:10,out:25,bz:false,lang:'en-IN',speak:true},b:'AB
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(_){}};
 const B=()=>S.b[S.cur];
 const fmt=n=>Number.isInteger(n)?String(n):n.toFixed(2).replace(/0$/,'');
+const rl=(s,i)=>s.roll!=null?s.roll:i+1;
 const cls=v=>v==null||v===''?'':(v/S.cfg.max>=.8?'hi':v/S.cfg.max>=.5?'mid':'lo');
 let undoStack=[],logs=[];
 
@@ -188,7 +191,7 @@ function render(){
   for(let w=1;w<=S.cfg.tut;w++)h+=`<th class="${w===S.week?'cw':''}">T${w}</th>`;
   h+=`<th>Avg /10</th><th>Final /${S.cfg.out}</th></tr></thead><tbody>`;
   B().students.forEach((s,r)=>{
-    h+=`<tr id="r${r+1}"><td class="s1">${r+1}</td><td class="s2"><input class="nm" data-r="${r}" value="${esc(s.name)}" placeholder="Student name" aria-label="Name roll ${r+1}"></td>`;
+    h+=`<tr id="r${r+1}"><td class="s1"><input class="rl" data-r="${r}" data-roll="1" value="${rl(s,r)}" inputmode="numeric" aria-label="Roll number" title="Click to change this roll number"></td><td class="s2"><input class="nm" data-r="${r}" value="${esc(s.name)}" placeholder="Student name" aria-label="Name roll ${r+1}"></td>`;
     for(let w=0;w<S.cfg.tut;w++)h+=`<td class="${w+1===S.week?'cw':''}"><input class="${cls(s.marks[w])}" inputmode="decimal" data-r="${r}" data-w="${w}" value="${s.marks[w]??''}" aria-label="Roll ${r+1} tutorial ${w+1}"></td>`;
     h+=`<td class="avg"></td><td class="fin"></td></tr>`;
   });
@@ -214,7 +217,7 @@ function addLog(t){logs.unshift(t);logs=logs.slice(0,8);$('#log').innerHTML='Rec
 
 /* ---------- dashboard extras ---------- */
 function theme(){document.documentElement.dataset.theme=S.cfg.theme||''}
-function applyFilter(){const q=($('#q').value||'').toLowerCase().trim();B().students.forEach((s,r)=>{const tr=$('#r'+(r+1));if(tr)tr.hidden=!!q&&!((r+1)+' '+s.name.toLowerCase()).includes(q)})}
+function applyFilter(){const q=($('#q').value||'').toLowerCase().trim();B().students.forEach((s,r)=>{const tr=$('#r'+(r+1));if(tr)tr.hidden=!!q&&!(rl(s,r)+' '+s.name.toLowerCase()).includes(q)})}
 function stats(){
   const w=S.week-1,st=B().students,n=st.length,v=st.map(s=>s.marks[w]).filter(x=>x!=null&&x!==''),
   avg=v.length?v.reduce((a,b)=>a+b,0)/v.length:0,
@@ -225,13 +228,13 @@ function stats(){
   $('#stats').innerHTML=`<div class="card"><small>Tutorial ${S.week} entered</small><b>${v.length} / ${n}</b><div class="bar"><i style="width:${pct}%"></i></div></div>
   <div class="card"><small>Tutorial average</small><b>${v.length?fmt(+avg.toFixed(2)):'–'}</b><small>out of ${S.cfg.max}</small></div>
   <div class="card"><small>Class final average</small><b>${fins.length?cf.toFixed(2):'–'}</b><small>out of ${S.cfg.out}</small></div>
-  <div class="card"><small>Top scorer</small><b>${top?esc(top.s.name||'Roll '+(top.i+1)):'–'}</b><small>${top?top.c.fin.toFixed(2)+' / '+S.cfg.out:'No marks yet'}</small></div>
-  <div class="card ${nx>=0?'go" data-go="'+nx+'':''}"><small>${nx>=0?'Next without marks':'All done'}</small><b>${nx>=0?'Roll '+(nx+1):'🎉 Complete'}</b><small>${nx>=0?'tap to jump there':'everyone has marks'}</small></div>`;
+  <div class="card"><small>Top scorer</small><b>${top?esc(top.s.name||'Roll '+rl(top.s,top.i)):'–'}</b><small>${top?top.c.fin.toFixed(2)+' / '+S.cfg.out:'No marks yet'}</small></div>
+  <div class="card ${nx>=0?'go" data-go="'+nx+'':''}"><small>${nx>=0?'Next without marks':'All done'}</small><b>${nx>=0?'Roll '+rl(st[nx],nx):'🎉 Complete'}</b><small>${nx>=0?'tap to jump there':'everyone has marks'}</small></div>`;
 }
 function nextPending(){
   const w=S.week-1,i=B().students.findIndex(s=>s.marks[w]==null||s.marks[w]==='');
   if(i<0){status('ok','Everyone has marks for this tutorial 🎉');return say('All students are done')}
-  flash(i);const nm=B().students[i].name;status('ok','Next: Roll '+(i+1)+(nm?' ('+nm+')':''));say('Next is roll '+(i+1));
+  flash(i);const nm=B().students[i].name;status('ok','Next: Roll '+rl(B().students[i],i)+(nm?' ('+nm+')':''));say('Next is roll '+rl(B().students[i],i));
 }
 /* ---------- mark setting ---------- */
 function setMark(b,r,w,val,src){
@@ -244,10 +247,14 @@ function setMark(b,r,w,val,src){
 function undo(){
   const u=undoStack.pop();if(!u){status('err','Nothing to undo');return say('Nothing to undo')}
   S.cur=u.b;render();setMark(u.b,u.r,u.w,u.old,'x');undoStack.pop();flash(u.r);
-  status('ok',`Undone: Roll ${u.r+1}, tutorial ${u.w+1}`);addLog(`Undo roll ${u.r+1}`);say('Undone');
+  status('ok',`Undone: Roll ${rl(B().students[u.r],u.r)}, tutorial ${u.w+1}`);addLog(`Undo roll ${rl(B().students[u.r],u.r)}`);say('Undone');
 }
 $('#tbl').addEventListener('change',e=>{
   const t=e.target,r=+t.dataset.r;
+  if(t.dataset.roll!==undefined){
+    const n=parseInt(t.value),st=B().students;
+    if(!(n>=0)||st.some((s,i)=>i!==r&&rl(s,i)===n)){status('err',isNaN(n)?'Roll must be a number':'Roll '+n+' is already used in this batch');t.value=rl(st[r],r);return}
+    st[r].roll=n;save();status('ok','Roll number set to '+n);return}
   if(t.dataset.w===undefined){B().students[r].name=t.value.trim();save();return}
   const w=+t.dataset.w,txt=t.value.trim();
   if(txt===''){setMark(S.cur,r,w,null);return}
@@ -265,7 +272,7 @@ $('#bRen').onclick=()=>renameBatch(S.cur);
 $('#bAdd').onclick=()=>{
   const n=prompt('New batch name:','Batch '+(S.b.length+1));if(!n||!n.trim())return;
   const c=Math.min(500,Math.max(1,parseInt(prompt('Number of students:',B().students.length))||30));
-  S.b.push(mk(n.trim().slice(0,40),c));S.cur=S.b.length-1;save();render();status('ok',`Added ${S.b[S.cur].name} with ${c} students`);
+  const nb=mk(n.trim().slice(0,40),c),sr=parseInt(prompt('First roll number:','1'));if(sr>=0&&sr!==1)nb.students.forEach((s,i)=>s.roll=sr+i);S.b.push(nb);S.cur=S.b.length-1;save();render();status('ok',`Added ${S.b[S.cur].name} with ${c} students`);
 };
 $('#bCnt').onclick=()=>{
   const st=B().students,c=parseInt(prompt(`Number of students in ${B().name}:`,st.length));
@@ -273,6 +280,11 @@ $('#bCnt').onclick=()=>{
   if(c<st.length&&st.slice(c).some(s=>s.name||s.marks.some(x=>x!=null))&&!confirm('Students beyond roll '+c+' have data and will be removed. Continue?'))return;
   if(c<st.length)st.length=c;else while(st.length<c)st.push({name:'',marks:[]});
   save();render();status('ok',`${B().name} now has ${c} students`);
+};
+$('#bRoll').onclick=()=>{
+  const v=prompt(`First roll number for ${B().name}? Rolls then run in order (e.g. 101, 102, 103…).\nYou can also click any roll number in the table to change just that one.`,rl(B().students[0],0));
+  const n=parseInt(v);if(isNaN(n)||n<0)return;
+  B().students.forEach((s,i)=>s.roll=n+i);save();render();status('ok',`${B().name} rolls now start at ${n}`);
 };
 $('#bDel').onclick=()=>{
   if(S.b.length<2)return alert('Keep at least one batch.');
@@ -316,8 +328,9 @@ function tokens(s){
   }
   return out;
 }
+function idxOf(n){return B().students.findIndex((s,i)=>rl(s,i)===n)}
 function splitDigits(s,count,max){
-  for(let k=1;k<s.length;k++){const r=+s.slice(0,k),m=+s.slice(k);if(r>=1&&r<=count&&m<=max)return[r,m]}
+  for(let k=1;k<s.length;k++){const r=+s.slice(0,k),m=+s.slice(k);if(idxOf(r)>=0&&m<=max)return[r,m]}
   return null;
 }
 function parseMarks(text){
@@ -331,9 +344,9 @@ function parseMarks(text){
     const sp=splitDigits(ne[0][0],count,max);if(!sp)return{err:'Could not separate roll and marks. Say "Roll 3 got 5".'};[roll,marks]=sp;
   }else return{err:'Say a roll number and marks, e.g. "Roll 3 got 5".'};
   roll=+roll;marks=+marks;
-  if(!Number.isInteger(roll)||roll<1||roll>count)return{err:`Roll ${roll} is not in ${B().name} (1–${count}).`};
+  const idx=idxOf(roll);if(!Number.isInteger(roll)||idx<0)return{err:`Roll ${roll} is not in ${B().name}.`};
   if(isNaN(marks)||marks<0||marks>max)return{err:`${marks} is outside 0–${max}.`};
-  return{roll,marks:Math.round(marks*100)/100};
+  return{roll,idx,marks:Math.round(marks*100)/100};
 }
 
 /* ---------- command handling ---------- */
@@ -352,8 +365,8 @@ function handle(raw){
     return status('err',`Batch "${k}" not found`)}
   const p=parseMarks(raw);
   if(p.err){status('err',p.err);addLog('✗ '+raw);return say('Please repeat')}
-  const old=setMark(S.cur,p.roll-1,S.week-1,p.marks,'voice');
-  const nm=B().students[p.roll-1].name;
+  const old=setMark(S.cur,p.idx,S.week-1,p.marks,'voice');
+  const nm=B().students[p.idx].name;
   status('ok',`Roll ${p.roll}${nm?' ('+nm+')':''}: ${p.marks} marks, tutorial ${S.week}${old!=null?` (was ${old})`:''}`);
   addLog(`${B().name.replace('Batch ','')} · R${p.roll} = ${p.marks}`);
   say(`Roll ${p.roll}, ${p.marks} marks ${old!=null?'updated':'recorded'}`);
@@ -432,11 +445,13 @@ $('#bOk').onclick=()=>{
   const lines=$('#bTxt').value.replace(/^\uFEFF/,'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
   let seq=1,n=0;const st=B().students;
   lines.forEach((l,i)=>{
-    const c=cells(l);let roll,name;
-    if(c.length>=2&&/^\d+$/.test(c[0])){roll=+c[0];name=c.slice(1).filter(Boolean).join(' ');seq=roll+1}
+    const c=cells(l);let roll,name,ex=false;
+    if(c.length>=2&&/^\d+$/.test(c[0])){roll=+c[0];name=c.slice(1).filter(Boolean).join(' ');seq=roll+1;ex=true}
     else if(i===0&&c.length>=2&&/roll|sr|no|id/i.test(c[0])&&/name/i.test(c[1]))return;
     else{roll=seq++;name=c.join(' ')}
-    if(roll<1||roll>500||!name)return;
+    if(roll<0||roll>99999||!name)return;
+    if(ex){let j=st.findIndex((s,k)=>rl(s,k)===roll);if(j<0)j=st.findIndex(s=>!s.name&&!s.marks.some(x=>x!=null));if(j<0){if(!$('#bExt').checked)return;st.push({name:'',marks:[]});j=st.length-1}st[j].roll=roll;st[j].name=name;n++;return}
+    if(roll<1||roll>500)return;
     if(roll>st.length){if(!$('#bExt').checked)return;while(st.length<roll)st.push({name:'',marks:[]})}
     st[roll-1].name=name;n++;
   });
@@ -450,7 +465,7 @@ function csv(batches){
   const rows=[head];
   batches.forEach(b=>b.students.forEach((s,r)=>{
     const c=calc(s);
-    rows.push([b.name,r+1,s.name,...Array.from({length:S.cfg.tut},(_,i)=>s.marks[i]??''),c.n?+c.a10.toFixed(2):'',c.n?+c.fin.toFixed(2):'']);
+    rows.push([b.name,rl(s,r),s.name,...Array.from({length:S.cfg.tut},(_,i)=>s.marks[i]??''),c.n?+c.a10.toFixed(2):'',c.n?+c.fin.toFixed(2):'']);
   }));
   return '\uFEFF'+rows.map(r=>r.map(q).join(',')).join('\r\n');
 }
