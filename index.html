@@ -58,7 +58,6 @@
     .btn-outline { background: white; border: 1px solid var(--border); }
     .btn-outline:hover { background: #f1f5f9; }
 
-    /* Voice mic pulsing */
     .mic-btn.active {
       background: var(--danger);
       animation: pulse 1.5s infinite;
@@ -88,7 +87,6 @@
       margin-bottom: 16px;
     }
 
-    /* Table */
     .table-responsive {
       overflow-x: auto;
       border: 1px solid var(--border);
@@ -139,7 +137,6 @@
 <body>
 <div class="container">
   
-  <!-- Header -->
   <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
       <div>
@@ -174,12 +171,12 @@
       <div class="flex-wrap" style="border-top: 1px solid #cbd5e1; padding-top: 12px;">
         <div>
           <label>Total Tutorials (Weeks):</label><br/>
-          <input type="number" id="numTutorialsInput" min="1" max="25" />
+          <input type="number" id="numTutorialsInput" min="1" max="30" />
           <button class="btn-outline" onclick="updateTutorialCount()">Apply</button>
         </div>
         <div>
           <label>Students in this Batch:</label><br/>
-          <input type="number" id="numStudentsInput" min="1" max="120" />
+          <input type="number" id="numStudentsInput" min="1" max="150" />
           <button class="btn-outline" onclick="updateStudentCount()">Apply</button>
         </div>
         <div style="margin-left: auto;">
@@ -232,24 +229,20 @@
 </div>
 
 <script>
-  // Initial default state
   let config = {
     batches: ["Batch 1", "Batch 2", "Batch 3", "Batch 4", "Batch 5", "Batch 6"],
     numTutorials: 10,
     currentBatch: "Batch 1"
   };
 
-  // Student store: { "Batch 1": [ { roll: 1, name: "Student 1", marks: ["", ...] }, ... ] }
   let studentStore = {};
 
-  // Load from LocalStorage
   function loadData() {
     const savedConfig = localStorage.getItem('voice_marks_config');
     const savedStore = localStorage.getItem('voice_marks_store');
     if (savedConfig) config = JSON.parse(savedConfig);
     if (savedStore) studentStore = JSON.parse(savedStore);
 
-    // Initialize missing batches
     config.batches.forEach(b => {
       if (!studentStore[b]) {
         studentStore[b] = createDefaultStudents(30, config.numTutorials);
@@ -287,7 +280,6 @@
     document.getElementById('numStudentsInput').value = students.length;
   }
 
-  // 1. Rename Batch
   function renameCurrentBatch() {
     const newName = document.getElementById('renameBatchInput').value.trim();
     if (!newName) return alert("Batch name cannot be empty.");
@@ -307,7 +299,6 @@
     alert(`Batch renamed to "${newName}"`);
   }
 
-  // 2. Add New Batch
   function addNewBatch() {
     const name = document.getElementById('newBatchInput').value.trim();
     if (!name) return alert("Please enter a name for the batch.");
@@ -323,7 +314,6 @@
     syncSettingsInputs();
   }
 
-  // 3. Delete Batch
   function deleteCurrentBatch() {
     if (config.batches.length <= 1) return alert("You must keep at least one batch.");
     if (!confirm(`Are you sure you want to delete ${config.currentBatch}?`)) return;
@@ -339,14 +329,12 @@
     syncSettingsInputs();
   }
 
-  // 4. Update Number of Tutorials
   function updateTutorialCount() {
     const val = parseInt(document.getElementById('numTutorialsInput').value);
     if (isNaN(val) || val < 1 || val > 30) return alert("Tutorials must be between 1 and 30.");
 
     config.numTutorials = val;
 
-    // Adjust mark arrays across all batches without losing data
     config.batches.forEach(b => {
       (studentStore[b] || []).forEach(student => {
         if (student.marks.length < val) {
@@ -363,7 +351,6 @@
     alert(`Tutorial count updated to ${val}`);
   }
 
-  // 5. Update Student Count in Current Batch
   function updateStudentCount() {
     const val = parseInt(document.getElementById('numStudentsInput').value);
     if (isNaN(val) || val < 1 || val > 150) return alert("Student count must be between 1 and 150.");
@@ -373,311 +360,4 @@
       for (let i = list.length + 1; i <= val; i++) {
         list.push({ roll: i, name: `Roll ${i}`, marks: Array(config.numTutorials).fill("") });
       }
-    } else if (val < list.length) {
-      if (confirm(`Reducing from ${list.length} to ${val} students will remove the last ${list.length - val} students. Continue?`)) {
-        list = list.slice(0, val);
-      } else {
-        return;
-      }
-    }
-    studentStore[config.currentBatch] = list;
-    saveData();
-    renderTable();
-  }
-
-  // 6. CSV Upload for Names
-  function uploadStudentCSV(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      const lines = evt.target.result.split(/\r?\n/).map(l => l.trim()).filter(l => l);
-      if (lines.length === 0) return alert("CSV file is empty.");
-
-      let list = studentStore[config.currentBatch] || [];
-      lines.forEach((line, idx) => {
-        const parts = line.split(',');
-        const name = parts.length > 1 ? parts[1].trim() : parts[0].trim();
-        if (idx < list.length) {
-          list[idx].name = name;
-        } else {
-          list.push({
-            roll: idx + 1,
-            name: name,
-            marks: Array(config.numTutorials).fill("")
-          });
-        }
-      });
-      studentStore[config.currentBatch] = list;
-      saveData();
-      renderTable();
-      syncSettingsInputs();
-      alert(`Imported ${lines.length} student names into ${config.currentBatch}.`);
-    };
-    reader.readAsText(file);
-  }
-
-  function populateBatchDropdown() {
-    const sel = document.getElementById('batchDropdown');
-    sel.innerHTML = '';
-    config.batches.forEach(b => {
-      const opt = document.createElement('option');
-      opt.value = b;
-      opt.textContent = b;
-      if (b === config.currentBatch) opt.selected = true;
-      sel.appendChild(opt);
-    });
-  }
-
-  function populateTutorialDropdown() {
-    const sel = document.getElementById('tutorialDropdown');
-    const prev = sel.value;
-    sel.innerHTML = '';
-    for (let i = 1; i <= config.numTutorials; i++) {
-      const opt = document.createElement('option');
-      opt.value = i - 1;
-      opt.textContent = `Tutorial ${i}`;
-      sel.appendChild(opt);
-    }
-    if (prev && prev < config.numTutorials) sel.value = prev;
-  }
-
-  function onBatchChange() {
-    config.currentBatch = document.getElementById('batchDropdown').value;
-    saveData();
-    syncSettingsInputs();
-    renderTable();
-  }
-
-  // Render Table
-  function renderTable() {
-    const head = document.getElementById('tableHead');
-    const body = document.getElementById('tableBody');
-    const students = studentStore[config.currentBatch] || [];
-
-    // Header
-    let headHtml = `<tr>
-      <th style="width:50px;">Roll</th>
-      <th style="width:140px; text-align:left; padding-left:8px;">Student Name</th>`;
-    for (let t = 1; t <= config.numTutorials; t++) {
-      headHtml += `<th>T${t}</th>`;
-    }
-    headHtml += `<th>Avg (/10)</th><th class="score-cell">Final (/25)</th></tr>`;
-    head.innerHTML = headHtml;
-
-    // Body
-    body.innerHTML = '';
-    students.forEach((s, rIndex) => {
-      const row = document.createElement('tr');
-      row.id = `student-row-${s.roll}`;
-
-      let cells = `<td><strong>${s.roll}</strong></td>`;
-      cells += `<td><input class="name-input" type="text" value="${s.name}" onchange="updateName(${rIndex}, this.value)" /></td>`;
-
-      let sum = 0, validCount = 0;
-      for (let t = 0; t < config.numTutorials; t++) {
-        const val = s.marks[t] !== undefined ? s.marks[t] : "";
-        const isAb = (val === 'AB' || val === 'ab');
-        const num = parseFloat(val);
-
-        if (!isAb && !isNaN(num)) {
-          sum += num;
-          validCount++;
-        }
-
-        cells += `<td><input class="mark-input ${isAb ? 'is-absent' : ''}" 
-                   type="text" 
-                   value="${val}" 
-                   onchange="updateMark(${rIndex}, ${t}, this.value)" /></td>`;
-      }
-
-      const avg10 = validCount > 0 ? (sum / validCount) : 0;
-      const final25 = validCount > 0 ? (avg10 * 2.5) : 0;
-
-      cells += `<td>${validCount > 0 ? avg10.toFixed(2) : '-'}</td>`;
-      cells += `<td class="score-cell">${validCount > 0 ? final25.toFixed(2) : '-'}</td>`;
-
-      row.innerHTML = cells;
-      body.appendChild(row);
-    });
-  }
-
-  function updateName(rIndex, val) {
-    studentStore[config.currentBatch][rIndex].name = val.trim();
-    saveData();
-  }
-
-  function updateMark(rIndex, tIndex, val) {
-    val = val.trim();
-    const upper = val.toUpperCase();
-    if (upper === 'AB') {
-      studentStore[config.currentBatch][rIndex].marks[tIndex] = 'AB';
-    } else if (val === '') {
-      studentStore[config.currentBatch][rIndex].marks[tIndex] = '';
-    } else {
-      const num = parseFloat(val);
-      if (isNaN(num) || num < 0 || num > 10) {
-        alert("Enter marks between 0 and 10, or 'AB' for Absent.");
-        renderTable();
-        return;
-      }
-      studentStore[config.currentBatch][rIndex].marks[tIndex] = num;
-    }
-    saveData();
-    renderTable();
-  }
-
-  // Voice Recognition
-  let recognition;
-  let isListening = false;
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-
-    recognition.onresult = function(event) {
-      const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
-      document.getElementById('voiceLog').innerHTML = `<strong>Heard:</strong> "${transcript}"`;
-      parseCommand(transcript);
-    };
-
-    recognition.onerror = function(event) {
-      document.getElementById('voiceLog').innerText = `Mic Error: ${event.error}`;
-    };
-
-    recognition.onend = function() {
-      if (isListening) recognition.start();
-    };
-  }
-
-  function toggleMic() {
-    if (!SpeechRecognition) {
-      alert("Speech recognition not supported in this browser. Please use Chrome or Edge.");
-      return;
-    }
-    const btn = document.getElementById('micBtn');
-    if (!isListening) {
-      recognition.start();
-      isListening = true;
-      btn.classList.add('active');
-      document.getElementById('micLabel').innerText = "Listening... (Tap to Stop)";
-      speak("Ready. Say roll number and marks.");
-    } else {
-      isListening = false;
-      recognition.stop();
-      btn.classList.remove('active');
-      document.getElementById('micLabel').innerText = "Turn On Mic";
-    }
-  }
-
-  function parseCommand(text) {
-    const tutIdx = parseInt(document.getElementById('tutorialDropdown').value);
-    const students = studentStore[config.currentBatch] || [];
-
-    // Check absent command: "roll 14 absent"
-    const abMatch = text.match(/roll(?:\s*(?:no|number))?\s*(\d{1,3})\s*(?:is\s*)?absent/i);
-    if (abMatch) {
-      const roll = parseInt(abMatch[1]);
-      const sIndex = students.findIndex(s => s.roll === roll);
-      if (sIndex !== -1) {
-        students[sIndex].marks[tutIdx] = 'AB';
-        saveData();
-        renderTable();
-        highlightRow(roll);
-        announce(`Roll ${roll} Absent recorded`);
-        return;
-      }
-    }
-
-    // Check marks command: "roll 25, 7 marks" or "roll no 5, 8.5"
-    const markMatch = text.match(/roll(?:\s*(?:no|number))?\s*(\d{1,3})[^\d]+(\d+(?:\.\d+)?)/i);
-    if (markMatch) {
-      const roll = parseInt(markMatch[1]);
-      const marks = parseFloat(markMatch[2]);
-      const sIndex = students.findIndex(s => s.roll === roll);
-
-      if (sIndex === -1) {
-        speak(`Roll number ${roll} not found in this batch.`);
-        return;
-      }
-      if (marks < 0 || marks > 10) {
-        speak("Marks must be out of 10.");
-        return;
-      }
-
-      students[sIndex].marks[tutIdx] = marks;
-      saveData();
-      renderTable();
-      highlightRow(roll);
-      announce(`Roll ${roll}, ${marks} marks recorded`);
-    }
-  }
-
-  function highlightRow(roll) {
-    const el = document.getElementById(`student-row-${roll}`);
-    if (el) {
-      el.classList.add('highlight-voice');
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => el.classList.remove('highlight-voice'), 2000);
-    }
-  }
-
-  function announce(msg) {
-    document.getElementById('confirmedFeedback').innerText = msg;
-    speak(msg);
-  }
-
-  function speak(msg) {
-    if ('speechSynthesis' in window) {
-      const u = new SpeechSynthesisUtterance(msg);
-      u.rate = 1.05;
-      window.speechSynthesis.speak(u);
-    }
-  }
-
-  // CSV Export
-  function exportToCSV() {
-    const batch = config.currentBatch;
-    const students = studentStore[batch] || [];
-
-    let header = ["Roll No", "Student Name"];
-    for (let t = 1; t <= config.numTutorials; t++) header.push(`T${t}`);
-    header.push("Average (Out of 10)", "Final (Out of 25)");
-
-    let csvContent = header.join(",") + "\n";
-
-    students.forEach(s => {
-      let row = [s.roll, `"${s.name}"`];
-      let sum = 0, count = 0;
-      for (let t = 0; t < config.numTutorials; t++) {
-        const val = s.marks[t] !== undefined ? s.marks[t] : "";
-        row.push(val);
-        if (val !== "" && val !== "AB" && !isNaN(parseFloat(val))) {
-          sum += parseFloat(val);
-          count++;
-        }
-      }
-      const avg = count > 0 ? (sum / count).toFixed(2) : "";
-      const final25 = count > 0 ? ((sum / count) * 2.5).toFixed(2) : "";
-      row.push(avg, final25);
-      csvContent += row.join(",") + "\n";
-    });
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${batch}_Tutorial_Marks.csv`;
-    link.click();
-  }
-
-  // Initialize
-  loadData();
-  populateBatchDropdown();
-  populateTutorialDropdown();
-  renderTable();
-</script>
-</body>
-</html>
+    } else if
