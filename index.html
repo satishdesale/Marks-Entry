@@ -45,7 +45,7 @@
       border-radius: 6px;
       border: 1px solid var(--border);
     }
-    select { min-width: 130px; background: white; }
+    select { min-width: 140px; background: white; }
     input[type="number"] { width: 80px; }
     button {
       cursor: pointer;
@@ -123,7 +123,7 @@
       outline: none;
     }
     .mark-input {
-      width: 46px;
+      width: 48px;
       text-align: center;
       padding: 4px;
       border: 1px solid #e2e8f0;
@@ -184,10 +184,6 @@
           <label>Bulk Student Names (CSV):</label><br/>
           <input type="file" id="csvFileInput" accept=".csv,.txt" onchange="uploadStudentCSV(event)" style="font-size:0.8rem;" />
         </div>
-        <div style="margin-left: auto;">
-          <label>Reset Everything:</label><br/>
-          <button class="btn-outline" style="color:var(--danger); border-color:#fca5a5;" onclick="resetAllData()">🔄 Reset to Factory Defaults</button>
-        </div>
       </div>
     </div>
 
@@ -234,6 +230,10 @@
 </div>
 
 <script>
+  // New clean storage key version 2 (bypasses corrupted older versions)
+  const CONFIG_KEY = 'vm_v2_config';
+  const STORE_KEY = 'vm_v2_store';
+
   const DEFAULT_BATCHES = ["Batch 1", "Batch 2", "Batch 3", "Batch 4", "Batch 5", "Batch 6"];
   const DEFAULT_TUTORIALS = 10;
   const DEFAULT_STUDENTS = 30;
@@ -246,45 +246,28 @@
 
   let studentStore = {};
 
-  function createDefaultStudents(count, tutCount) {
-    const list = [];
+  function makeDefaultStudents(count, tutCount) {
+    const arr = [];
     for (let i = 1; i <= count; i++) {
-      list.push({
+      arr.push({
         roll: i,
         name: `Roll ${i}`,
         marks: Array(tutCount).fill("")
       });
     }
-    return list;
+    return arr;
   }
 
-  // Robust loader that safely repairs old/corrupted localStorage
-  function loadData() {
+  function initAppState() {
     try {
-      const savedConfig = localStorage.getItem('voice_marks_config');
-      const savedStore = localStorage.getItem('voice_marks_store');
-
-      if (savedConfig) {
-        const parsed = JSON.parse(savedConfig);
-        if (parsed && Array.isArray(parsed.batches) && parsed.batches.length > 0) {
-          config.batches = parsed.batches;
-          config.numTutorials = parseInt(parsed.numTutorials) || DEFAULT_TUTORIALS;
-          config.currentBatch = parsed.currentBatch || parsed.batches[0];
-        }
-      }
-
-      if (savedStore) {
-        const parsedStore = JSON.parse(savedStore);
-        if (parsedStore && typeof parsedStore === 'object') {
-          studentStore = parsedStore;
-        }
-      }
-    } catch (e) {
-      console.warn("Storage error detected, resetting state to defaults", e);
-      studentStore = {};
+      const c = localStorage.getItem(CONFIG_KEY);
+      const s = localStorage.getItem(STORE_KEY);
+      if (c) config = JSON.parse(c);
+      if (s) studentStore = JSON.parse(s);
+    } catch(err) {
+      console.error("Local data reset:", err);
     }
 
-    // Sanity checks
     if (!Array.isArray(config.batches) || config.batches.length === 0) {
       config.batches = [...DEFAULT_BATCHES];
     }
@@ -297,118 +280,206 @@
 
     config.batches.forEach(b => {
       if (!studentStore[b] || !Array.isArray(studentStore[b]) || studentStore[b].length === 0) {
-        studentStore[b] = createDefaultStudents(DEFAULT_STUDENTS, config.numTutorials);
+        studentStore[b] = makeDefaultStudents(DEFAULT_STUDENTS, config.numTutorials);
       }
     });
 
-    saveData();
+    saveAppState();
   }
 
-  function saveData() {
+  function saveAppState() {
     try {
-      localStorage.setItem('voice_marks_config', JSON.stringify(config));
-      localStorage.setItem('voice_marks_store', JSON.stringify(studentStore));
-    } catch (e) {
-      console.error("Failed to save to localStorage", e);
-    }
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+      localStorage.setItem(STORE_KEY, JSON.stringify(studentStore));
+    } catch (e) {}
   }
 
-  function resetAllData() {
-    if (!confirm("This will clear all saved names and marks and restore factory defaults. Are you sure?")) return;
-    localStorage.removeItem('voice_marks_config');
-    localStorage.removeItem('voice_marks_store');
-    localStorage.removeItem('tutorial_marks_data');
-    location.reload();
+  function populateDropdowns() {
+    const bSel = document.getElementById('batchDropdown');
+    bSel.innerHTML = '';
+    config.batches.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b;
+      opt.textContent = b;
+      if (b === config.currentBatch) opt.selected = true;
+      bSel.appendChild(opt);
+    });
+
+    const tSel = document.getElementById('tutorialDropdown');
+    const oldVal = tSel.value;
+    tSel.innerHTML = '';
+    for (let i = 1; i <= config.numTutorials; i++) {
+      const opt = document.createElement('option');
+      opt.value = i - 1;
+      opt.textContent = `Tutorial ${i}`;
+      tSel.appendChild(opt);
+    }
+    if (oldVal && oldVal < config.numTutorials) tSel.value = oldVal;
+  }
+
+  function renderTable() {
+    const thead = document.getElementById('tableHead');
+    const tbody = document.getElementById('tableBody');
+    const students = studentStore[config.currentBatch] || [];
+
+    let hHtml = `<tr>
+      <th style="width:50px;">Roll</th>
+      <th style="width:140px; text-align:left; padding-left:8px;">Student Name</th>`;
+    for (let t = 1; t <= config.numTutorials; t++) {
+      hHtml += `<th>T${t}</th>`;
+    }
+    hHtml += `<th>Avg (/10)</th><th class="score-cell">Final (/25)</th></tr>`;
+    thead.innerHTML = hHtml;
+
+    let bHtml = '';
+    students.forEach((s, idx) => {
+      let sum = 0, count = 0;
+      let inputsHtml = '';
+
+      for (let t = 0; t < config.numTutorials; t++) {
+        const val = s.marks && s.marks[t] !== undefined ? s.marks[t] : '';
+        const isAb = (val === 'AB' || val === 'ab');
+        const num = parseFloat(val);
+
+        if (!isAb && !isNaN(num)) {
+          sum += num;
+          count++;
+        }
+
+        inputsHtml += `<td><input class="mark-input ${isAb ? 'is-absent' : ''}" 
+                        type="text" 
+                        value="${val}" 
+                        onchange="updateMark(${idx}, ${t}, this.value)" /></td>`;
+      }
+
+      const avg = count > 0 ? (sum / count) : 0;
+      const final25 = count > 0 ? (avg * 2.5) : 0;
+
+      bHtml += `<tr id="student-row-${s.roll}">
+        <td><strong>${s.roll}</strong></td>
+        <td><input class="name-input" type="text" value="${s.name}" onchange="updateName(${idx}, this.value)" /></td>
+        ${inputsHtml}
+        <td>${count > 0 ? avg.toFixed(2) : '-'}</td>
+        <td class="score-cell">${count > 0 ? final25.toFixed(2) : '-'}</td>
+      </tr>`;
+    });
+
+    tbody.innerHTML = bHtml;
+  }
+
+  function updateName(idx, val) {
+    studentStore[config.currentBatch][idx].name = val.trim();
+    saveAppState();
+  }
+
+  function updateMark(idx, tIdx, val) {
+    val = val.trim();
+    if (val.toUpperCase() === 'AB') {
+      studentStore[config.currentBatch][idx].marks[tIdx] = 'AB';
+    } else if (val === '') {
+      studentStore[config.currentBatch][idx].marks[tIdx] = '';
+    } else {
+      const num = parseFloat(val);
+      if (isNaN(num) || num < 0 || num > 10) {
+        alert("Enter marks between 0 and 10, or 'AB' for Absent.");
+        renderTable();
+        return;
+      }
+      studentStore[config.currentBatch][idx].marks[tIdx] = num;
+    }
+    saveAppState();
+    renderTable();
+  }
+
+  function onBatchChange() {
+    config.currentBatch = document.getElementById('batchDropdown').value;
+    saveAppState();
+    syncSettingsInputs();
+    renderTable();
   }
 
   function toggleSettings() {
-    const panel = document.getElementById('settingsPanel');
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    const p = document.getElementById('settingsPanel');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
     syncSettingsInputs();
   }
 
   function syncSettingsInputs() {
-    document.getElementById('renameBatchInput').value = config.currentBatch || '';
-    document.getElementById('numTutorialsInput').value = config.numTutorials || DEFAULT_TUTORIALS;
+    document.getElementById('renameBatchInput').value = config.currentBatch;
+    document.getElementById('numTutorialsInput').value = config.numTutorials;
     const students = studentStore[config.currentBatch] || [];
-    document.getElementById('numStudentsInput').value = students.length || DEFAULT_STUDENTS;
+    document.getElementById('numStudentsInput').value = students.length;
   }
 
   function renameCurrentBatch() {
-    const newName = document.getElementById('renameBatchInput').value.trim();
-    if (!newName) return alert("Batch name cannot be empty.");
-    if (newName === config.currentBatch) return;
-    if (config.batches.includes(newName)) return alert("A batch with this name already exists.");
+    const name = document.getElementById('renameBatchInput').value.trim();
+    if (!name) return alert("Batch name cannot be blank.");
+    if (name === config.currentBatch) return;
+    if (config.batches.includes(name)) return alert("Batch name already exists.");
 
-    const oldName = config.currentBatch;
-    const index = config.batches.indexOf(oldName);
-    config.batches[index] = newName;
-    studentStore[newName] = studentStore[oldName];
-    delete studentStore[oldName];
+    const old = config.currentBatch;
+    config.batches[config.batches.indexOf(old)] = name;
+    studentStore[name] = studentStore[old];
+    delete studentStore[old];
+    config.currentBatch = name;
 
-    config.currentBatch = newName;
-    saveData();
-    populateBatchDropdown();
+    saveAppState();
+    populateDropdowns();
     renderTable();
-    alert(`Batch renamed to "${newName}"`);
   }
 
   function addNewBatch() {
     const name = document.getElementById('newBatchInput').value.trim();
-    if (!name) return alert("Please enter a name for the batch.");
+    if (!name) return alert("Enter batch name.");
     if (config.batches.includes(name)) return alert("Batch already exists.");
 
     config.batches.push(name);
-    studentStore[name] = createDefaultStudents(DEFAULT_STUDENTS, config.numTutorials);
+    studentStore[name] = makeDefaultStudents(DEFAULT_STUDENTS, config.numTutorials);
     config.currentBatch = name;
     document.getElementById('newBatchInput').value = '';
-    saveData();
-    populateBatchDropdown();
+
+    saveAppState();
+    populateDropdowns();
     renderTable();
     syncSettingsInputs();
   }
 
   function deleteCurrentBatch() {
-    if (config.batches.length <= 1) return alert("You must keep at least one batch.");
-    if (!confirm(`Are you sure you want to delete ${config.currentBatch}?`)) return;
+    if (config.batches.length <= 1) return alert("Must keep at least 1 batch.");
+    if (!confirm(`Delete ${config.currentBatch}?`)) return;
 
-    const delName = config.currentBatch;
-    config.batches = config.batches.filter(b => b !== delName);
-    delete studentStore[delName];
+    const del = config.currentBatch;
+    config.batches = config.batches.filter(b => b !== del);
+    delete studentStore[del];
     config.currentBatch = config.batches[0];
 
-    saveData();
-    populateBatchDropdown();
+    saveAppState();
+    populateDropdowns();
     renderTable();
     syncSettingsInputs();
   }
 
   function updateTutorialCount() {
     const val = parseInt(document.getElementById('numTutorialsInput').value);
-    if (isNaN(val) || val < 1 || val > 30) return alert("Tutorials must be between 1 and 30.");
+    if (isNaN(val) || val < 1 || val > 30) return alert("Tutorials must be 1 to 30.");
 
     config.numTutorials = val;
-
     config.batches.forEach(b => {
-      (studentStore[b] || []).forEach(student => {
-        if (!student.marks) student.marks = [];
-        if (student.marks.length < val) {
-          while (student.marks.length < val) student.marks.push("");
-        } else if (student.marks.length > val) {
-          student.marks = student.marks.slice(0, val);
-        }
+      (studentStore[b] || []).forEach(st => {
+        if (!st.marks) st.marks = [];
+        while (st.marks.length < val) st.marks.push("");
+        if (st.marks.length > val) st.marks = st.marks.slice(0, val);
       });
     });
 
-    saveData();
-    populateTutorialDropdown();
+    saveAppState();
+    populateDropdowns();
     renderTable();
-    alert(`Tutorial count set to ${val}`);
   }
 
   function updateStudentCount() {
     const val = parseInt(document.getElementById('numStudentsInput').value);
-    if (isNaN(val) || val < 1 || val > 150) return alert("Student count must be between 1 and 150.");
+    if (isNaN(val) || val < 1 || val > 150) return alert("Count must be 1 to 150.");
 
     let list = studentStore[config.currentBatch] || [];
     if (val > list.length) {
@@ -416,14 +487,14 @@
         list.push({ roll: i, name: `Roll ${i}`, marks: Array(config.numTutorials).fill("") });
       }
     } else if (val < list.length) {
-      if (confirm(`Reducing to ${val} students will delete data for the extra students. Continue?`)) {
+      if (confirm(`Remove last ${list.length - val} students?`)) {
         list = list.slice(0, val);
       } else {
         return;
       }
     }
     studentStore[config.currentBatch] = list;
-    saveData();
+    saveAppState();
     renderTable();
   }
 
@@ -433,7 +504,7 @@
     const reader = new FileReader();
     reader.onload = function(evt) {
       const lines = evt.target.result.split(/\r?\n/).map(l => l.trim()).filter(l => l);
-      if (lines.length === 0) return alert("CSV file is empty.");
+      if (lines.length === 0) return alert("Empty CSV");
 
       let list = studentStore[config.currentBatch] || [];
       lines.forEach((line, idx) => {
@@ -442,81 +513,169 @@
         if (idx < list.length) {
           list[idx].name = name;
         } else {
-          list.push({
-            roll: idx + 1,
-            name: name,
-            marks: Array(config.numTutorials).fill("")
-          });
+          list.push({ roll: idx + 1, name: name, marks: Array(config.numTutorials).fill("") });
         }
       });
       studentStore[config.currentBatch] = list;
-      saveData();
+      saveAppState();
       renderTable();
       syncSettingsInputs();
-      alert(`Imported ${lines.length} student names into ${config.currentBatch}.`);
+      alert(`Imported ${lines.length} names.`);
     };
     reader.readAsText(file);
   }
 
-  function populateBatchDropdown() {
-    const sel = document.getElementById('batchDropdown');
-    sel.innerHTML = '';
-    config.batches.forEach(b => {
-      const opt = document.createElement('option');
-      opt.value = b;
-      opt.textContent = b;
-      if (b === config.currentBatch) opt.selected = true;
-      sel.appendChild(opt);
-    });
-  }
+  // Speech System
+  const wordMap = {
+    "zero": 0, "one": 1, "won": 1, "two": 2, "to": 2, "too": 2, "three": 3, "tree": 3,
+    "four": 4, "for": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "ate": 8, "nine": 9, "ten": 10,
+    "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16,
+    "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "point": ".", "half": ".5"
+  };
 
-  function populateTutorialDropdown() {
-    const sel = document.getElementById('tutorialDropdown');
-    const prev = sel.value;
-    sel.innerHTML = '';
-    for (let i = 1; i <= config.numTutorials; i++) {
-      const opt = document.createElement('option');
-      opt.value = i - 1;
-      opt.textContent = `Tutorial ${i}`;
-      sel.appendChild(opt);
+  function normalizeSpeech(str) {
+    let text = str.toLowerCase().replace(/,/g, ' ');
+    text = text.replace(/\b(rule|role|row|hole|pole|raw)\b/gi, 'roll');
+
+    const tens = { "twenty": 20, "thirty": 30 };
+    const units = { "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9 };
+    for (let t in tens) {
+      for (let u in units) {
+        text = text.replace(new RegExp(`\\b${t}\\s+${u}\\b`, 'g'), tens[t] + units[u]);
+      }
     }
-    if (prev && prev < config.numTutorials) sel.value = prev;
+
+    let words = text.split(/\s+/);
+    return words.map(w => wordMap[w] !== undefined ? wordMap[w] : w).join(" ");
   }
 
-  function onBatchChange() {
-    config.currentBatch = document.getElementById('batchDropdown').value;
-    saveData();
-    syncSettingsInputs();
-    renderTable();
+  let recognition;
+  let isListening = false;
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = function(e) {
+      const text = e.results[e.results.length - 1][0].transcript;
+      document.getElementById('voiceLog').innerHTML = `<strong>Heard:</strong> "${text}"`;
+      parseSpeech(text);
+    };
+
+    recognition.onend = function() {
+      if (isListening) recognition.start();
+    };
   }
 
-  function renderTable() {
-    const head = document.getElementById('tableHead');
-    const body = document.getElementById('tableBody');
+  function toggleMic() {
+    if (!SpeechRecognition) return alert("Speech recognition only works in Chrome or Edge.");
+    const btn = document.getElementById('micBtn');
+    if (!isListening) {
+      recognition.start();
+      isListening = true;
+      btn.classList.add('active');
+      document.getElementById('micLabel').innerText = "Listening...";
+      speak("Ready");
+    } else {
+      isListening = false;
+      recognition.stop();
+      btn.classList.remove('active');
+      document.getElementById('micLabel').innerText = "Turn On Mic";
+    }
+  }
+
+  function parseSpeech(raw) {
+    const tutIdx = parseInt(document.getElementById('tutorialDropdown').value);
     const students = studentStore[config.currentBatch] || [];
+    const text = normalizeSpeech(raw);
 
-    let headHtml = `<tr>
-      <th style="width:50px;">Roll</th>
-      <th style="width:140px; text-align:left; padding-left:8px;">Student Name</th>`;
-    for (let t = 1; t <= config.numTutorials; t++) {
-      headHtml += `<th>T${t}</th>`;
+    const abMatch = text.match(/roll(?:\s*(?:no|number))?\s*(\d{1,3})\s*(?:is\s*)?absent/i);
+    if (abMatch) {
+      const roll = parseInt(abMatch[1]);
+      const sIdx = students.findIndex(s => s.roll === roll);
+      if (sIdx !== -1) {
+        students[sIdx].marks[tutIdx] = 'AB';
+        saveAppState();
+        renderTable();
+        highlight(roll);
+        speak(`Roll ${roll} Absent`);
+        return;
+      }
     }
-    headHtml += `<th>Avg (/10)</th><th class="score-cell">Final (/25)</th></tr>`;
-    head.innerHTML = headHtml;
 
-    body.innerHTML = '';
-    students.forEach((s, rIndex) => {
-      const row = document.createElement('tr');
-      row.id = `student-row-${s.roll}`;
+    const markMatch = text.match(/roll(?:\s*(?:no|number))?\s*(\d{1,3})\s*(?:got|score|marks|mark|is|=|,)?\s*(\d+(?:\.\d+)?)/i);
+    if (markMatch) {
+      const roll = parseInt(markMatch[1]);
+      const marks = parseFloat(markMatch[2]);
+      const sIdx = students.findIndex(s => s.roll === roll);
 
-      let cells = `<td><strong>${s.roll}</strong></td>`;
-      cells += `<td><input class="name-input" type="text" value="${s.name}" onchange="updateName(${rIndex}, this.value)" /></td>`;
+      if (sIdx === -1) return speak(`Roll ${roll} not found`);
+      if (marks < 0 || marks > 10) return speak("Marks out of 10 only");
 
-      let sum = 0, validCount = 0;
+      students[sIdx].marks[tutIdx] = marks;
+      saveAppState();
+      renderTable();
+      highlight(roll);
+      document.getElementById('confirmedFeedback').innerText = `Roll ${roll} = ${marks}`;
+      speak(`Roll ${roll}, ${marks}`);
+    }
+  }
+
+  function highlight(roll) {
+    const el = document.getElementById(`student-row-${roll}`);
+    if (el) {
+      el.classList.add('highlight-voice');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => el.classList.remove('highlight-voice'), 2000);
+    }
+  }
+
+  function speak(msg) {
+    if ('speechSynthesis' in window) {
+      const u = new SpeechSynthesisUtterance(msg);
+      window.speechSynthesis.speak(u);
+    }
+  }
+
+  function exportToCSV() {
+    const batch = config.currentBatch;
+    const students = studentStore[batch] || [];
+    let header = ["Roll No", "Student Name"];
+    for (let t = 1; t <= config.numTutorials; t++) header.push(`T${t}`);
+    header.push("Average (/10)", "Final (/25)");
+    let csv = header.join(",") + "\n";
+
+    students.forEach(s => {
+      let row = [s.roll, `"${s.name}"`];
+      let sum = 0, count = 0;
       for (let t = 0; t < config.numTutorials; t++) {
         const val = s.marks && s.marks[t] !== undefined ? s.marks[t] : "";
-        const isAb = (val === 'AB' || val === 'ab');
-        const num = parseFloat(val);
+        row.push(val);
+        if (val !== "" && val !== "AB" && !isNaN(parseFloat(val))) {
+          sum += parseFloat(val);
+          count++;
+        }
+      }
+      const avg = count > 0 ? (sum / count).toFixed(2) : "";
+      const final25 = count > 0 ? ((sum / count) * 2.5).toFixed(2) : "";
+      row.push(avg, final25);
+      csv += row.join(",") + "\n";
+    });
 
-        if (!isAb && !isNaN(num)) {
-          sum += num;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${batch}_Marks.csv`;
+    link.click();
+  }
+
+  // Direct synchronous startup
+  initAppState();
+  populateDropdowns();
+  renderTable();
+</script>
+</body>
+</html>
